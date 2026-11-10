@@ -112,7 +112,8 @@ nav.scenes{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:14px 190px 1
  <span class="badge">Replay of saved runs</span>
  <div class="hdr-r">
   <a class="pill hide-s" href="https://www.kaggle.com/competitions/gemma-4-developer-agent-paper" target="_blank" rel="noopener">Paper track</a>
-  <span class="pill">🔒 No model called here</span>
+  <button class="pill" id="snd" aria-pressed="true">🔊 Sound on</button>
+  <span class="pill hide-s">🔒 No model called here</span>
  </div>
 </header>
 <main id="main"></main>
@@ -161,6 +162,23 @@ const SCENES=[
  {k:'free',t:'Interrogation'},{k:'lineup',t:'The lineup'},{k:'verdict',t:'Verdict'},
  {k:'numbers',t:'The numbers'},{k:'proof',t:'Proof'}];
 
+/* ---------- Sound: short tonal effects only (no noise) ---------- */
+let AC=null,SND=true;try{SND=localStorage.getItem('cv_snd')!=='0'}catch(e){}
+function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function tone(f1,f2,dur,type='sine',vol=.08,delay=0){if(!SND)return;const a=ac();if(!a)return;const t=a.currentTime+delay,o=a.createOscillator(),g=a.createGain();
+ o.type=type;o.frequency.setValueAtTime(f1,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+ g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.012);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+ o.connect(g).connect(a.destination);o.start(t);o.stop(t+dur+.02)}
+const SFX={
+ blip:()=>tone(520+Math.random()*260,null,.045,'triangle',.035),
+ tick:()=>tone(1400,null,.03,'sine',.04),
+ pop:()=>{tone(620,140,.16,'sine',.12)},
+ ding:()=>{tone(880,null,.45,'sine',.07);tone(1320,null,.5,'sine',.04,.05)},
+ thud:()=>tone(220,110,.25,'triangle',.09),
+ bell:()=>{tone(784,null,.7,'sine',.07);tone(1175,null,.8,'sine',.05,.12);tone(1568,null,.9,'sine',.035,.24)},
+ swoosh:()=>tone(320,900,.18,'sine',.035)};
+function setSnd(v){SND=v;try{localStorage.setItem('cv_snd',v?'1':'0')}catch(e){}const b=document.getElementById('snd');b.textContent=v?'🔊 Sound on':'🔇 Sound off';b.setAttribute('aria-pressed',v)}
+
 /* ---------- Dot ---------- */
 function stage(html,line,mood){
  return `<div class="stage"><div class="dotbox">${document.getElementById('dot-svg').innerHTML}<div class="bubble" id="say"></div></div><div>${html}</div></div>`;
@@ -170,13 +188,13 @@ async function say(text,mood){
  if(!el)return; dot.setAttribute('class',mood||'happy'); el.textContent='';
  const m=dot.querySelector('.mouth');
  for(let i=0;i<text.length;i++){ if(id!==run)return; el.textContent+=text[i];
-  if(i%2==0)m.style.transform=`scaleY(${1+Math.random()*1.6})`; await sleep(text[i]===' '?14:22);}
+  if(i%2==0)m.style.transform=`scaleY(${1+Math.random()*1.6})`;if(i%3==0&&text[i]!==' ')SFX.blip(); await sleep(text[i]===' '?14:22);}
  m.style.transform='';
 }
 function mood(m){const d=document.getElementById('dot');if(d)d.setAttribute('class',m)}
 
 /* ---------- scenes ---------- */
-function go(i){S=Math.max(0,Math.min(SCENES.length-1,i));render();window.scrollTo({top:0,behavior:'smooth'})}
+function go(i){const n=Math.max(0,Math.min(SCENES.length-1,i));if(n!==S)SFX.swoosh();S=n;render();window.scrollTo({top:0,behavior:'smooth'})}
 function render(){
  run++;
  const sc=SCENES[S];
@@ -256,7 +274,7 @@ rule:()=>say("I'm Dot. I hunt bugs, and the stories small models tell about them
 case:()=>say("Pick a file. Every answer in there is exactly what Gemma said, no edits.","happy"),
 free:()=>say("Lots of confident names. Let me check if any of these functions are real.","scan"),
 lineup:()=>say("Same bug. This time Gemma has to point at the list and copy a line as proof.","scan"),
-verdict:()=>{const t=T();const hit=t.cite[0]&&t.cite[0].gold;
+verdict:()=>{const t=T();const hit=t.cite[0]&&t.cite[0].gold;setTimeout(()=>hit?SFX.bell():SFX.thud(),350);
  say(hit?"Case closed. The cited function is the one the maintainers fixed.":t.goldrank.length?"Not this time. The right one was on the list, but Gemma pointed elsewhere.":"Not this time. Search never put the right function on the list.",hit?'happy':'shock')},
 numbers:async()=>{say("One case is a story. Here are all of them.","happy");await sleep(150);
  document.querySelectorAll('[data-w]').forEach(s=>s.style.width=s.dataset.w+'%');
@@ -264,11 +282,11 @@ numbers:async()=>{say("One case is a story. Here are all of them.","happy");awai
  document.querySelectorAll('[data-n]').forEach(el=>count(el,+el.dataset.n,v=>Math.round(v)))},
 proof:()=>say("Everything here is a replay of saved runs. Go check the receipts.","happy")
 };
-async function count(el,to,f){const id=run;for(let i=0;i<=40;i++){if(id!==run)return;el.textContent=f(to*i/40);await sleep(25)}}
+async function count(el,to,f){const id=run;for(let i=0;i<=40;i++){if(id!==run)return;el.textContent=f(to*i/40);if(i%5==0)SFX.tick();await sleep(25)}}
 
 async function checkFree(){const id=run,t=T();document.getElementById('fbtn').disabled=true;mood('scan');
- for(let i=0;i<t.free.length;i++){const c=document.getElementById('f'+i);c.classList.add('scan');await sleep(650);if(id!==run)return;
-  c.classList.remove('scan');c.querySelector('.stamp').classList.add('show');await sleep(250);c.classList.add(t.free[i].kept?'stay':'gone');await sleep(300)}
+ for(let i=0;i<t.free.length;i++){const c=document.getElementById('f'+i);c.classList.add('scan');SFX.tick();await sleep(650);if(id!==run)return;
+  c.classList.remove('scan');c.querySelector('.stamp').classList.add('show');t.free[i].kept?SFX.ding():SFX.thud();await sleep(250);c.classList.add(t.free[i].kept?'stay':'gone');if(!t.free[i].kept)SFX.pop();await sleep(300)}
  const k=t.free.filter(x=>x.kept).length;
  document.getElementById('fsum').innerHTML=k?`<b>${t.free.length-k} of ${t.free.length}</b> names do not exist in the repository. ${k} survived.`:`<b>All ${t.free.length}</b> names are invented. An agent would have chased ${t.free.length} dead ends.`;
  say(k?"Some of those don't exist at all. An agent would waste turns on them.":"Not one of them exists. Pure fiction.",'shock')}
@@ -281,7 +299,7 @@ async function checkCite(){const id=run,t=T();document.getElementById('cbtn').di
    [!!q.resolved,`Exists in the code graph`],
    [!!q.evidence,`Copied line found in its source: <code>${esc(q.evidence)}</code>`]];
   for(const [ok,txt] of rows){const d=document.createElement('div');d.className='chk';d.innerHTML=`<span class="ic">${ok?'✅':'❌'}</span><span>${txt}</span>`;box.appendChild(d);d.scrollIntoView({block:'center',behavior:'smooth'});
-   await sleep(420);if(id!==run)return;d.classList.add('on',ok?'ok':'bad');
+   await sleep(420);if(id!==run)return;d.classList.add('on',ok?'ok':'bad');ok?SFX.ding():SFX.thud();
    if(txt.startsWith('On the')&&idx>=0){document.getElementById('s'+idx).classList.add('cited')}}
   await sleep(250)}
  const kept=t.cite.filter(q=>q.resolved).length;
@@ -290,6 +308,7 @@ async function checkCite(){const id=run,t=T();document.getElementById('cbtn').di
  say("Every citation points at real code, with proof. Now, was it the right one?",'happy')}
 
 document.getElementById('next').onclick=()=>go(S+1);
+document.getElementById('snd').onclick=()=>{setSnd(!SND);if(SND)SFX.ding()};setSnd(SND);
 document.getElementById('prev').onclick=()=>go(S-1);
 addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(S+1);if(e.key==='ArrowLeft')go(S-1)});
 render();
