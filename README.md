@@ -2,7 +2,7 @@
 
 **Play it now in your browser:** https://jenniferevangelista-de.github.io/cite-or-vanish/
 
-No install, no login. A short detective story in eight scenes: Dot, a ladybug who hunts bugs, replays what Gemma 4 E4B did on a real bug task: first its free answer, then the cite-or-vanish contract, where the model may only point at functions from a short list and must copy one real line of code as proof. A validator deletes whatever does not check out.
+No install, no login. A short detective story in eight scenes, in English or Portuguese, narrated out loud: Dot, a ladybug who hunts bugs, replays what Gemma 4 E4B did on a real bug task: first its free answer, then the cite-or-vanish contract, where the model may only point at functions from a short list and must copy one real line of code as proof. A validator deletes whatever does not check out.
 
 - E4B right on the first try (hit@1): 7.0% with a free answer, 38.3% with cite-or-vanish (115 tasks).
 - On 120 newer bugs from 68 other repositories (SWE-bench-Live): 23.7% with search alone, 50.0% with cite-or-vanish.

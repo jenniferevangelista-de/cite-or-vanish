@@ -16,6 +16,7 @@ header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;
 .hdr-r{margin-left:auto;display:flex;gap:8px}
 .pill{border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:999px;padding:7px 14px;font-size:14px;color:var(--ink);text-decoration:none;white-space:nowrap}
 .pill:hover{border-color:var(--gold)}
+.lang{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}.lang button{border:0;background:transparent;padding:7px 12px;font-weight:600;font-size:13px;color:var(--mut)}.lang button.on{background:var(--gold);color:#2a1838}
 main{max-width:1080px;margin:0 auto;padding:8px 22px 150px;min-height:calc(100vh - 70px)}
 .scene{animation:in .55s ease both}@keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .stage{display:grid;grid-template-columns:200px 1fr;gap:28px;align-items:start;margin-top:10px}
@@ -109,11 +110,12 @@ nav.scenes{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:14px 190px 1
 </style></head><body>
 <header>
  <div class="brand">🐞 Cite <em>or</em> Vanish</div>
- <span class="badge">Replay of saved runs</span>
+ <span class="badge" data-t="badge">Replay of saved runs</span>
  <div class="hdr-r">
-  <a class="pill hide-s" href="https://www.kaggle.com/competitions/gemma-4-developer-agent-paper" target="_blank" rel="noopener">Paper track</a>
-  <button class="pill" id="snd" aria-pressed="true">🔊 Sound on</button>
-  <span class="pill hide-s">🔒 No model called here</span>
+  <a class="pill hide-s" href="https://www.kaggle.com/competitions/gemma-4-developer-agent-paper" target="_blank" rel="noopener" data-t="paper">Paper track</a>
+  <div class="lang"><button data-lang="en">EN</button><button data-lang="pt">PT</button></div>
+  <button class="pill" id="snd" aria-pressed="true">🔊 Voice on</button>
+  <span class="pill hide-s" data-t="nomodel">🔒 No model called here</span>
  </div>
 </header>
 <main id="main"></main>
@@ -151,165 +153,228 @@ nav.scenes{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:14px 190px 1
 <script>
 const D={"tasks": [{"id": "rich_2943", "repo": "Textualize/rich", "num": "2943", "gold": ["rich.style.Style.clear_meta_and_links"], "shortlist": ["examples.fullscreen.make_sponsor_message", "rich.console.Console.set_window_title", "rich.console.Console._check_buffer", "tools.make_terminal_widths.run", "rich.progress.TimeRemainingColumn.render", "rich.style.Style", "rich.style.Style.clear_meta_and_links", "rich.live_render.LiveRender", "rich.text.Text.on", "rich.control.Control", "rich.console.Console.save_svg", "rich.traceback.Traceback.read_code", "rich.highlighter.ISO8601Highlighter", "rich.traceback.install", "rich.prompt.Confirm", "rich.console.Console.save_html", "rich.syntax.Syntax", "rich.text.Text.assemble", "rich.prompt.PromptBase.__call__", "rich.console.Console.export_html"], "goldrank": [7], "free": [{"id": "rich.core.CacheManager.clear_cache", "reason": "The cache needs an explicit clearing mechanism.", "kept": false, "gold": false}, {"id": "rich.core.Meta.clear_meta", "reason": "This method is the trigger for the required cache invalidation.", "kept": false, "gold": false}, {"id": "rich.core.Renderer.render_with_cache", "reason": "The rendering logic likely uses the hashed cache and needs to be aware of meta changes.", "kept": false, "gold": false}, {"id": "rich.core.State.get_cached_value", "reason": "The method that retrieves cached values must check for meta validity before returning a result.", "kept": false, "gold": false}, {"id": "rich.core.Config.update_metadata", "reason": "Any method that modifies the metadata should potentially trigger a cache clear.", "kept": false, "gold": false}], "cite": [{"raw": "7", "resolved": "rich.style.Style.clear_meta_and_links", "evidence": "def clear_meta_and_links(self) -> \"Style\":", "gold": true}], "n_shortlist": 20}, {"id": "rich_3006", "repo": "Textualize/rich", "num": "3006", "gold": ["rich.repr.auto_rich_repr"], "shortlist": ["rich.console.Console.set_window_title", "rich.console.Console._check_buffer", "examples.fullscreen.make_sponsor_message", "rich.pretty._has_default_namedtuple_repr", "rich.pretty._is_dataclass_repr", "rich.progress.Progress.get_default_columns", "tools.make_terminal_widths.run", "rich.repr.auto_rich_repr", "rich.text.Text.__eq__", "rich.style.Style.__eq__", "rich.progress.Progress.update", "rich.repr.do_replace", "rich.repr.auto", "rich.control.Control.__init__", "rich.pretty._traverse", "rich.progress.TimeRemainingColumn.render", "rich.pretty.traverse", "rich.markup.render", "rich.pretty.is_expandable", "rich._win32_console.GetConsoleMode"], "goldrank": [8], "free": [{"id": "rich.parameters.Parameters", "reason": "The class likely contains the logic for parameter sets and the definition of the 'empty' state.", "kept": false, "gold": false}, {"id": "rich.parameters.Parameters.__eq__", "reason": "The equality check (`==`) is where the bug manifests when custom classes override `__eq__`.", "kept": false, "gold": false}, {"id": "rich.parameters.Parameters.empty", "reason": "This is the sentinel value being compared against, and its interaction with custom object equality is the root cause.", "kept": false, "gold": false}], "cite": [{"raw": "8", "resolved": "rich.repr.auto_rich_repr", "evidence": "def auto_rich_repr(self: Type[T]) -> Result:", "gold": true}, {"raw": "12", "resolved": "rich.repr.do_replace", "evidence": "def do_replace(cls: Type[T], angular: Optional[bool] = None) -> Type[T]:", "gold": false}, {"raw": "13", "resolved": "rich.repr.auto", "evidence": "def do_replace(cls: Type[T], angular: Optional[bool] = None) -> Type[T]:", "gold": false}], "n_shortlist": 20}, {"id": "rich_3052", "repo": "Textualize/rich", "num": "3052", "gold": ["rich.prompt.PromptBase.__init__", "rich.prompt.PromptBase.ask", "rich.prompt.PromptBase.check_choice", "rich.prompt.PromptBase.process_response"], "shortlist": ["rich.prompt.PromptBase.ask", "rich.console.Console.set_window_title", "rich.prompt.PromptBase", "examples.fullscreen.make_sponsor_message", "rich.console.Console._check_buffer", "rich.prompt.Prompt", "rich.prompt.PromptBase.make_prompt", "rich.prompt.PromptBase.check_choice", "rich.prompt.PromptBase.__init__", "rich.console.Console.input", "rich.prompt.Confirm", "rich.text.Text.highlight_words", "rich.spinner.Spinner", "rich.prompt.PromptBase.__call__", "rich.live_render.LiveRender", "rich.prompt.PromptBase.process_response", "rich.syntax.Syntax", "rich.tree.Tree.add", "rich._inspect.Inspect", "rich.prompt.Confirm.render_default"], "goldrank": [9, 1, 8, 16], "free": [{"id": "rich.prompt.Prompt.ask", "reason": "This method needs to accept the new 'case_sensitive' parameter and pass it down to the choice validation logic.", "kept": false, "gold": false}, {"id": "rich.prompt.Prompt._ask_with_choices", "reason": "This internal method (or similar logic) is responsible for comparing user input against the provided choices and needs to implement case-insensitive matching when case_sensitive is False.", "kept": false, "gold": false}], "cite": [{"raw": "1", "resolved": "rich.prompt.PromptBase.ask", "evidence": "def ask(", "gold": true}, {"raw": "8", "resolved": "rich.prompt.PromptBase.check_choice", "evidence": "def check_choice(self, value: str) -> bool:", "gold": true}, {"raw": "9", "resolved": "rich.prompt.PromptBase.__init__", "evidence": "def __init__(", "gold": true}], "n_shortlist": 20}, {"id": "rich_3061", "repo": "Textualize/rich", "num": "3061", "gold": ["rich.text.Text.__init__", "rich.text.Text.__rich_console__", "rich.text.Text.append_text", "rich.text.Text.append_tokens", "rich.text.Text.divide", "rich.text.Text.expand_tabs", "rich.text.Text.from_ansi"], "shortlist": ["rich.text.Text.expand_tabs", "examples.fullscreen.make_sponsor_message", "rich.text.Text", "rich.containers.Lines.justify", "rich.text.Text.wrap", "rich.text.Text.__init__", "rich.rule.Rule.__rich_console__", "rich.text.Text.assemble", "rich.highlighter.ISO8601Highlighter", "rich.text.Text.copy_styles", "rich.progress.TimeRemainingColumn.render", "rich.text.Text.from_ansi", "rich.text.Text.truncate", "rich.console.Console._check_buffer", "rich.text.Text.join", "rich.console.Console.export_svg", "rich.text.Text.align", "rich.text.Text.pad", "rich.text.Text.append_text", "rich.text.Text.copy"], "goldrank": [6, 19, 1, 12], "free": [{"id": "rich.text.Text.extend_tabs", "reason": "This is the method explicitly identified as having the bug, needing modification to correctly handle spans when replacing tabs with spaces.", "kept": false, "gold": false}, {"id": "rich.text.Text", "reason": "The Text class holds the state and logic for spans and needs to be updated to ensure span information is preserved during tab extension.", "kept": true, "gold": false}], "cite": [{"raw": "1", "resolved": "rich.text.Text.expand_tabs", "evidence": "def expand_tabs(self, tab_size: Optional[int] = None) -> None:", "gold": true}], "n_shortlist": 20}, {"id": "rich_3454", "repo": "Textualize/rich", "num": "3454", "gold": ["rich.highlighter.ReprHighlighter"], "shortlist": ["examples.fullscreen.make_sponsor_message", "rich.console.Console.set_window_title", "rich.highlighter.ReprHighlighter", "rich.highlighter.ISO8601Highlighter", "rich.progress.TimeRemainingColumn.render", "rich.highlighter.RegexHighlighter", "rich.pretty._has_default_namedtuple_repr", "tools.make_terminal_widths.run", "rich.console.Console._check_buffer", "rich.highlighter.Highlighter.__call__", "rich.color.Color.parse", "rich.highlighter.NullHighlighter", "rich.traceback.install", "rich.logging.RichHandler", "rich.highlighter.RegexHighlighter.highlight", "rich.jupyter.display", "rich.pretty._is_dataclass_repr", "rich.markdown.Markdown", "rich.align.VerticalCenter", "rich._inspect.Inspect.__init__"], "goldrank": [3], "free": [{"id": "rich.highlighter.ReprHighlighter", "reason": "The regex pattern for URL matching needs to be updated to include '@' to correctly handle hyperlinks.", "kept": true, "gold": true}], "cite": [{"raw": "3", "resolved": "rich.highlighter.ReprHighlighter", "evidence": "class ReprHighlighter(RegexHighlighter):", "gold": true}], "n_shortlist": 20}, {"id": "rich_2725", "repo": "Textualize/rich", "num": "2725", "gold": ["rich.table.Table._render"], "shortlist": ["examples.export.print_table", "benchmarks.benchmarks.TableSuite._print_table", "rich.__main__.make_test_card", "rich.box.Box.get_row", "rich.box.Box.__init__", "rich.table.Table._render", "examples.fullscreen.make_sponsor_message", "rich.console.Console.set_window_title", "rich.box.Box", "rich.table.Table._get_cells", "rich.table.Table.add_column", "rich.table.Table", "rich.table.Table.__init__", "rich.table.Column", "tools.make_terminal_widths.run", "rich.progress.Progress.update", "rich.console.Console.export_svg", "rich.panel.Panel.__rich_console__", "rich.progress.Progress.reset", "rich.table.Table.get_padding"], "goldrank": [6], "free": [{"id": "rich.table.Table", "reason": "The main class responsible for managing and rendering the table structure, including its box elements (head, mid, foot).", "kept": true, "gold": false}, {"id": "rich.table.Table.render", "reason": "The method that orchestrates the drawing of the table, where the incorrect ordering of box elements is likely being determined or applied.", "kept": false, "gold": false}, {"id": "rich.table.Table._render_rows", "reason": "Internal method likely responsible for iterating over and placing the different sections (head, mid, foot) into the final output sequence.", "kept": false, "gold": false}, {"id": "rich.table.Table._get_rows", "reason": "A method that retrieves or generates the sequence of rows, which must correctly order the head, mid, and foot sections.", "kept": false, "gold": false}, {"id": "rich.table.Table._get_box_elements", "reason": "A method that retrieves the specific box elements (head, mid, foot) and determines their placement in the rendering pipeline.", "kept": false, "gold": false}], "cite": [{"raw": "rich.box.Box.get_row", "resolved": "rich.box.Box.get_row", "evidence": "def get_row(", "gold": false}, {"raw": "rich.table.Table._render", "resolved": "rich.table.Table._render", "evidence": "def _render(", "gold": true}], "n_shortlist": 20}, {"id": "rich_3470", "repo": "Textualize/rich", "num": "3470", "gold": ["rich.console.Console._write_buffer"], "shortlist": ["examples.fullscreen.make_sponsor_message", "rich.console.Console._write_buffer", "rich.progress.TimeRemainingColumn.render", "rich.highlighter.ISO8601Highlighter", "rich.console.Console.capture", "rich.console.Console.begin_capture", "rich.console.Capture.get", "rich.console.Capture.__enter__", "rich.logging.RichHandler.emit", "rich.console.CaptureError", "rich.console.Capture", "rich.console.Console.end_capture", "rich.logging.RichHandler.get_level_text", "rich.logging.RichHandler.render", "rich.logging.RichHandler.render_message", "rich.console.Console.export_text", "rich.console.Capture.__init__", "rich._win32_console.GetConsoleMode", "rich.console.Capture.__exit__", "rich.console.Console.export_html"], "goldrank": [2], "free": [{"id": "rich.console.Console", "reason": "This class manages output streams and is the primary location for capture logic.", "kept": true, "gold": false}, {"id": "rich.types.TypeState", "reason": "Changes here might be needed if the issue relates to how data records are interpreted or formatted during capture.", "kept": false, "gold": false}, {"id": "rich.table.Table", "reason": "If 'record' refers to structured data rows, the Table class or its internal row handling needs inspection.", "kept": true, "gold": false}, {"id": "rich.logging.RichHandler", "reason": "If the issue pertains to logging records being captured or processed incorrectly.", "kept": true, "gold": false}], "cite": [{"raw": "5", "resolved": "rich.console.Console.capture", "evidence": "def capture(self) -> Capture:", "gold": false}, {"raw": "12", "resolved": "rich.console.Console.end_capture", "evidence": "def end_capture(self) -> str:", "gold": false}, {"raw": "19", "resolved": "rich.console.Capture.__exit__", "evidence": "def __exit__(", "gold": false}, {"raw": "2", "resolved": "rich.console.Console._write_buffer", "evidence": "def _write_buffer(self) -> None:", "gold": true}, {"raw": "16", "resolved": "rich.console.Console.export_text", "evidence": "def export_text(self, *, clear: bool = True, styles: bool = False) -> str:", "gold": false}], "n_shortlist": 20}, {"id": "rich_3063", "repo": "Textualize/rich", "num": "3063", "gold": ["rich.markup.escape", "rich.markup.pop_style"], "shortlist": ["examples.fullscreen.make_sponsor_message", "rich.progress.TimeRemainingColumn.render", "rich.highlighter.ISO8601Highlighter", "rich.console.Console._check_buffer", "rich._win32_console.GetConsoleMode", "rich._fileno.get_fileno", "rich.box.Box.substitute", "rich.pretty._ipy_display_hook", "rich.syntax.Syntax", "rich.syntax.Syntax.from_path", "rich.protocol.is_renderable", "rich.segment.SegmentLines", "rich.palette.Palette.__rich__", "rich.text.Text.cell_len", "rich.align.Align.left", "rich.align.Align.right", "rich.live_render.LiveRender.__rich_console__", "examples.fullscreen.Header.__rich__", "rich.panel.Panel._title", "rich.panel.Panel._subtitle"], "goldrank": [], "free": [{"id": "rich.console.Console.print", "reason": "The Console class is the primary entry point for rendering output, and it is most likely where string processing and escaping logic resides.", "kept": true, "gold": false}, {"id": "rich.text.Text", "reason": "This class holds the actual text and its styling, and it may contain internal methods responsible for handling string representation and escaping.", "kept": true, "gold": false}, {"id": "rich.style.Style", "reason": "If the backslash is involved in custom formatting or style definitions, the Style class or its related parsing logic might need adjustment.", "kept": true, "gold": false}], "cite": [{"raw": "10", "resolved": "rich.syntax.Syntax.from_path", "evidence": "def from_path(", "gold": false}, {"raw": "19", "resolved": "rich.panel.Panel._title", "evidence": "if self.title:", "gold": false}, {"raw": "20", "resolved": "rich.panel.Panel._subtitle", "evidence": "if self.subtitle:", "gold": false}, {"raw": "6", "resolved": "rich._fileno.get_fileno", "evidence": "fileno: Callable[[], int] | None = getattr(file_like, \"fileno\", None)", "gold": false}], "n_shortlist": 20}], "counts": {"wins": 38, "free_ok": 11, "miss_in": 23, "miss_out": 46, "n": 115}, "nums": {"free_hit1": 0.06956521739130435, "retr_hit1": 0.1565217391304348, "cite_hit1": 0.3826086956521739, "n": 115, "agent_base": 3, "agent_ours": 8, "agent_tasks": 55}, "extra": {"free_claims": 425, "invented": 0.7223529411764706, "live_tasks": 120, "live_repos": 68, "live_free": 0.06140350877192982, "live_retr": 0.23684210526315788, "live_cite": 0.5}};
 const N=D.nums, X=D.extra||{};
-const pc=(x,d=0)=>(x*100).toFixed(d)+'%';
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const main=document.getElementById('main');
-let S=0, cur=0, st={}, run=0;
+let S=0, cur=0, run=0, LANG='en';
+try{LANG=localStorage.getItem('cv_lang')||(navigator.language||'').toLowerCase().startsWith('pt')&&'pt'||'en'}catch(e){}
+const pc=(x,d=0)=>{const s=(x*100).toFixed(d);return (LANG=='pt'?s.replace('.',','):s)+'%'};
 
-const SCENES=[
- {k:'open',t:'Cold open'},{k:'rule',t:'The rule'},{k:'case',t:'Pick a case'},
- {k:'free',t:'Interrogation'},{k:'lineup',t:'The lineup'},{k:'verdict',t:'Verdict'},
- {k:'numbers',t:'The numbers'},{k:'proof',t:'Proof'}];
+/* ---------- words ---------- */
+const W={
+en:{scenes:['Cold open','The rule','Pick a case','Interrogation','The lineup','Verdict','The numbers','Proof'],
+ next:['Meet the detective →','Open the case files →','Interrogate →','The lineup →','Verdict →','The numbers →','Proof →',''],
+ of:'of',badge:'Replay of saved runs',nomodel:'🔒 No model called here',paper:'Paper track',son:'🔊 Voice on',soff:'🔇 Voice off',
+ h1a:'Asked where a bug lives,<br>a small model named',h1b:'functions.',h1c:'of them do not exist.',tag:'A detective story where the evidence is one real line of code.',
+ k_rule:'The rule',t_rule:'Cite, or vanish.',
+ l_rule:'Gemma 4 E4B is small enough to run on a laptop, offline and free. It is also a confident storyteller. So every claim it makes must pass three checks. Fail one, and the claim disappears before the coding agent ever sees it.',
+ c1:'CHECK 1',c1b:'On the shortlist',c1p:n=>`It may only point at one of ${n} functions that search found for this bug.`,
+ c2:'CHECK 2',c2b:'Exists in the code',c2p:'The name must be a real function or class in the repository\'s code graph.',
+ c3:'CHECK 3',c3b:'Copy one real line',c3p:'It must quote a line that appears, character for character, in that function.',
+ rnote:'No second model, no training. A few microseconds of plain string matching.',
+ k_case:'Case files',t_case:'Pick a real bug.',l_case:'Real issues from the open-source library <b>rich</b>. Each file holds what Gemma 4 E4B actually answered in our experiment, replayed step by step.',
+ casen:'Case',cnote:'Not hand-picked: the first task of each outcome group, in id order. Two of these cases end badly, on purpose.',
+ k_free:'Interrogation',t_free:'First, no rules.',l_free:'We asked Gemma 4 E4B, with no list and no proof required: which functions should change to fix this bug? Here are its suspects.',
+ exists:'exists',nosuch:'no such function',noans:'No usable answer.',bfree:'🔍 Check them against the code',
+ fsome:(a,b,k)=>`<b>${a} of ${b}</b> names do not exist in the repository. ${k} survived.`,fnone:b=>`<b>All ${b}</b> names are invented. An agent would have chased ${b} dead ends.`,
+ k_line:'The lineup',t_line:n=>`Now: only these ${n}.`,l_line:n=>`Search on a plain CPU picks ${n} real functions. Gemma may only point at one of them, and must copy a line as proof.`,
+ bcite:'🔍 Run the three checks',ch1:'On the shortlist',lnum:'list number',ch2:'Exists in the code graph',ch3:'Copied line found in its source',
+ cdone:(k,n)=>`<b>${k} of ${n}</b> citations passed. Every location handed to the agent is real.`,bverd:'See the verdict →',
+ k_verd:'Verdict',t_verd:'What did the real fix change?',l_verd:'The maintainers already fixed this bug. Their patch tells us the right answer.',
+ changed:'Changed in the real fix:',open:'Open',ongh:'on GitHub ↗',vfree:'Free answer, first pick',vcite:'Cite or vanish, first pick',
+ correct:'Correct',wrong:'Wrong',none:'Nothing left',allinv:'Every name it gave was invented.',wasat:r=>`The right function was #${r} on the list.`,notlist:'The right function was not on the list, so no citation could find it.',nextcase:'Next case →',
+ k_num:'All the cases, not just these',t_num:'Small model, real answers.',l_num:'Same Gemma 4 E4B, same laptop-sized budget. The only change is the rule.',
+ s1:n=>`right function on the first try, ${n} competition bugs`,s2:(t,r)=>`on ${t} newer bugs from ${r} other repositories`,s3:n=>`bugs actually fixed by a full Gemma 4 E4B coding agent, out of ${n}, in the official harness`,
+ bfree2:'Free answer',bsearch:'Search only',bcv:'Cite or vanish',bagent:'Sample agent',brule:'With the rule',
+ k_proof:'Proof and fine print',t_proof:'Check our work.',p1:'The paper',p1s:'Gemma 4 Developer Agent Paper Track on Kaggle: method, tables, confidence intervals.',
+ p2:'This page',p2s:'One HTML file. Every number and answer above is embedded and readable.',p3:'The 68 new repositories',p3s:'SWE-bench-Live (MIT), used for the out-of-distribution check.',
+ fine:n=>`This page replays saved runs of Gemma 4 E4B (QAT) on ${n} bug-localization tasks. Nothing is computed live and no model is called. The cases are the first of each outcome group in id order, not chosen to flatter. The third check (the copied line must appear in the function's code) ran during the experiment; the source code is not bundled here, so the page shows its result instead of re-running it. The newer issues predate Gemma 4, so they test new repositories, not unseen data.`},
+pt:{scenes:['Abertura','A regra','Escolha um caso','Interrogatório','O lineup','Veredito','Os números','Provas'],
+ next:['Conheça a detetive →','Abrir as fichas →','Interrogar →','O lineup →','Veredito →','Os números →','Provas →',''],
+ of:'de',badge:'Replay de testes salvos',nomodel:'🔒 Nenhum modelo roda aqui',paper:'Paper',son:'🔊 Voz ligada',soff:'🔇 Voz desligada',
+ h1a:'Perguntado onde mora um bug,<br>um modelo pequeno citou',h1b:'funções.',h1c:'delas não existem.',tag:'Uma história de detetive em que a prova é uma linha de código real.',
+ k_rule:'A regra',t_rule:'Cite, ou suma.',
+ l_rule:'O Gemma 4 E4B é pequeno o bastante para rodar num notebook, offline e de graça. Também é um contador de histórias muito confiante. Por isso toda afirmação dele passa por três testes. Falhou em um, a afirmação some antes de chegar ao agente que corrige o código.',
+ c1:'TESTE 1',c1b:'Está na lista',c1p:n=>`Ele só pode apontar uma das ${n} funções que a busca encontrou para este bug.`,
+ c2:'TESTE 2',c2b:'Existe no código',c2p:'O nome precisa ser uma função ou classe real no grafo de código do repositório.',
+ c3:'TESTE 3',c3b:'Copie uma linha real',c3p:'Ele tem que citar uma linha que aparece, caractere por caractere, naquela função.',
+ rnote:'Sem segundo modelo, sem treino. Alguns microssegundos de comparação de texto.',
+ k_case:'Fichas',t_case:'Escolha um bug real.',l_case:'Bugs reais da biblioteca open-source <b>rich</b>. Cada ficha guarda o que o Gemma 4 E4B respondeu de verdade no experimento, replay passo a passo.',
+ casen:'Caso',cnote:'Sem escolha a dedo: o primeiro caso de cada tipo de resultado, na ordem do id. Dois deles terminam mal, de propósito.',
+ k_free:'Interrogatório',t_free:'Primeiro, sem regras.',l_free:'Perguntamos ao Gemma 4 E4B, sem lista e sem exigir prova: quais funções precisam mudar para corrigir este bug? Estes são os suspeitos dele.',
+ exists:'existe',nosuch:'função não existe',noans:'Sem resposta utilizável.',bfree:'🔍 Conferir no código',
+ fsome:(a,b,k)=>`<b>${a} de ${b}</b> nomes não existem no repositório. ${k} sobreviveram.`,fnone:b=>`<b>Todos os ${b}</b> nomes são inventados. Um agente correria atrás de ${b} pistas falsas.`,
+ k_line:'O lineup',t_line:n=>`Agora: só estes ${n}.`,l_line:n=>`Uma busca simples, só na CPU, escolhe ${n} funções reais. O Gemma só pode apontar uma delas e copiar uma linha como prova.`,
+ bcite:'🔍 Rodar os três testes',ch1:'Está na lista',lnum:'número da lista',ch2:'Existe no grafo de código',ch3:'Linha copiada encontrada no código',
+ cdone:(k,n)=>`<b>${k} de ${n}</b> citações passaram. Todo local entregue ao agente é real.`,bverd:'Ver o veredito →',
+ k_verd:'Veredito',t_verd:'O que a correção real mudou?',l_verd:'Os mantenedores já corrigiram este bug. A correção deles mostra a resposta certa.',
+ changed:'Mudou na correção real:',open:'Abrir',ongh:'no GitHub ↗',vfree:'Resposta livre, primeiro palpite',vcite:'Cite ou suma, primeiro palpite',
+ correct:'Certo',wrong:'Errado',none:'Não sobrou nada',allinv:'Todos os nomes eram inventados.',wasat:r=>`A função certa era a nº ${r} da lista.`,notlist:'A função certa não estava na lista, então nenhuma citação podia achá-la.',nextcase:'Próximo caso →',
+ k_num:'Todos os casos, não só estes',t_num:'Modelo pequeno, respostas reais.',l_num:'Mesmo Gemma 4 E4B, mesmo orçamento de notebook. Só a regra muda.',
+ s1:n=>`acerta a função de primeira, ${n} bugs da competição`,s2:(t,r)=>`em ${t} bugs mais novos de ${r} outros repositórios`,s3:n=>`bugs corrigidos de verdade por um agente Gemma 4 E4B completo, de ${n}, no ambiente oficial`,
+ bfree2:'Resposta livre',bsearch:'Só a busca',bcv:'Cite ou suma',bagent:'Agente oficial',brule:'Com a regra',
+ k_proof:'Provas e letras miúdas',t_proof:'Confira o nosso trabalho.',p1:'O paper',p1s:'Paper Track do Gemma 4 Developer Agent no Kaggle: método, tabelas e intervalos de confiança.',
+ p2:'Esta página',p2s:'Um único arquivo HTML. Todo número e resposta daqui está embutido e legível.',p3:'Os 68 repositórios novos',p3s:'SWE-bench-Live (MIT), usado no teste fora da distribuição.',
+ fine:n=>`Esta página faz o replay de testes salvos do Gemma 4 E4B (QAT) em ${n} tarefas de localização de bugs. Nada é calculado ao vivo e nenhum modelo é chamado. Os casos são o primeiro de cada tipo de resultado, na ordem do id, sem escolha para agradar. O terceiro teste (a linha copiada precisa estar no código da função) rodou durante o experimento; o código-fonte não vem junto, então a página mostra o resultado em vez de rodar de novo. Os bugs mais novos são anteriores ao Gemma 4, então testam repositórios novos, não dados nunca vistos.`}};
+const L=()=>W[LANG];
+let LINES={
+ "en": {
+  "rule": "I'm Dot. I hunt bugs, and the stories small models tell about them. My rule is simple: cite real code, or vanish.",
+  "case": "Pick a file. Every answer in there is exactly what Gemma said. No edits.",
+  "free": "Lots of confident names. Let me check if any of these functions are real.",
+  "free_none": "Not one of them exists. Pure fiction.",
+  "free_some": "Some of those don't exist at all. An agent would waste turns on them.",
+  "lineup": "Same bug. This time Gemma has to point at the list, and copy a line as proof.",
+  "cite_done": "Every citation points at real code, with proof. Now, was it the right one?",
+  "verdict_hit": "Case closed! The cited function is the one the maintainers fixed.",
+  "verdict_wrong": "Not this time. The right one was on the list, but Gemma pointed elsewhere.",
+  "verdict_miss": "Not this time. Search never put the right function on the list.",
+  "numbers": "One case is a story. Here are all of them.",
+  "proof": "Everything here is a replay of saved runs. Go check the receipts."
+ },
+ "pt": {
+  "rule": "Eu sou a Dot. Eu caço bugs, e as histórias que modelos pequenos contam sobre eles. Minha regra é simples: cite código real, ou suma.",
+  "case": "Escolha uma ficha. Cada resposta ali é exatamente o que o Gemma disse. Sem edição.",
+  "free": "Quantos nomes confiantes. Vamos ver se alguma dessas funções existe de verdade.",
+  "free_none": "Nenhuma delas existe. Pura ficção.",
+  "free_some": "Algumas nem existem. Um agente perderia tempo com elas.",
+  "lineup": "Mesmo bug. Agora o Gemma tem que apontar para a lista, e copiar uma linha como prova.",
+  "cite_done": "Toda citação aponta para código real, com prova. Agora, será que era a certa?",
+  "verdict_hit": "Caso encerrado! A função citada é a mesma que os mantenedores corrigiram.",
+  "verdict_wrong": "Dessa vez não. A certa estava na lista, mas o Gemma apontou outra.",
+  "verdict_miss": "Dessa vez não. A busca nunca colocou a função certa na lista.",
+  "numbers": "Um caso é uma história. Aqui estão todos.",
+  "proof": "Tudo aqui é replay de testes salvos. Vá conferir os recibos."
+ }
+};
 
-/* ---------- Sound: short tonal effects only (no noise) ---------- */
+/* ---------- sound: Dot's voice + a few soft tonal cues (no noise) ---------- */
 let AC=null,SND=true;try{SND=localStorage.getItem('cv_snd')!=='0'}catch(e){}
 function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
-function tone(f1,f2,dur,type='sine',vol=.08,delay=0){if(!SND)return;const a=ac();if(!a)return;const t=a.currentTime+delay,o=a.createOscillator(),g=a.createGain();
- o.type=type;o.frequency.setValueAtTime(f1,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);
- g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.012);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+function tone(f1,f2,dur,vol=.05,delay=0){if(!SND)return;const a=ac();if(!a)return;const t=a.currentTime+delay,o=a.createOscillator(),g=a.createGain();
+ o.type='sine';o.frequency.setValueAtTime(f1,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+ g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.015);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
  o.connect(g).connect(a.destination);o.start(t);o.stop(t+dur+.02)}
-const SFX={
- blip:()=>tone(520+Math.random()*260,null,.045,'triangle',.035),
- tick:()=>tone(1400,null,.03,'sine',.04),
- pop:()=>{tone(620,140,.16,'sine',.12)},
- ding:()=>{tone(880,null,.45,'sine',.07);tone(1320,null,.5,'sine',.04,.05)},
- thud:()=>tone(220,110,.25,'triangle',.09),
- bell:()=>{tone(784,null,.7,'sine',.07);tone(1175,null,.8,'sine',.05,.12);tone(1568,null,.9,'sine',.035,.24)},
- swoosh:()=>tone(320,900,.18,'sine',.035)};
-function setSnd(v){SND=v;try{localStorage.setItem('cv_snd',v?'1':'0')}catch(e){}const b=document.getElementById('snd');b.textContent=v?'🔊 Sound on':'🔇 Sound off';b.setAttribute('aria-pressed',v)}
+const SFX={pop:()=>tone(560,180,.14,.05),ding:()=>{tone(988,null,.5,.035);tone(1480,null,.55,.018,.05)},
+ bell:()=>{tone(784,null,.8,.045);tone(1175,null,.9,.03,.12);tone(1568,null,1,.022,.24)},low:()=>tone(330,220,.3,.04)};
+let VO=null;
+function stopVoice(){if(VO){VO.pause();VO=null}}
+function setSnd(v){SND=v;if(!v)stopVoice();try{localStorage.setItem('cv_snd',v?'1':'0')}catch(e){}const b=document.getElementById('snd');b.textContent=v?L().son:L().soff;b.setAttribute('aria-pressed',v)}
 
 /* ---------- Dot ---------- */
-function stage(html,line,mood){
- return `<div class="stage"><div class="dotbox">${document.getElementById('dot-svg').innerHTML}<div class="bubble" id="say"></div></div><div>${html}</div></div>`;
-}
-async function say(text,mood){
+function stage(html){return `<div class="stage"><div class="dotbox">${document.getElementById('dot-svg').innerHTML}<div class="bubble" id="say"></div></div><div>${html}</div></div>`}
+async function say(key,mood){
  const id=++run, el=document.getElementById('say'), dot=document.getElementById('dot');
  if(!el)return; dot.setAttribute('class',mood||'happy'); el.textContent='';
- const m=dot.querySelector('.mouth');
- for(let i=0;i<text.length;i++){ if(id!==run)return; el.textContent+=text[i];
-  if(i%2==0)m.style.transform=`scaleY(${1+Math.random()*1.6})`;if(i%3==0&&text[i]!==' ')SFX.blip(); await sleep(text[i]===' '?14:22);}
- m.style.transform='';
+ const text=LINES[LANG][key], m=dot.querySelector('.mouth');
+ stopVoice(); let dur=text.length*0.045;
+ if(SND){const a=new Audio(`voice/${key}${LANG=='pt'?'_pt':''}.mp3`);VO=a;
+  try{await a.play();if(isFinite(a.duration)&&a.duration>0)dur=a.duration}catch(e){VO=null}}
+ const t0=performance.now();
+ while(true){ if(id!==run)return; const f=Math.min(1,(performance.now()-t0)/1000/dur);
+  el.textContent=text.slice(0,Math.ceil(text.length*f));
+  m.style.transform=f<1?`scaleY(${1+Math.random()*1.8})`:''; if(f>=1)break; await sleep(70)}
 }
 function mood(m){const d=document.getElementById('dot');if(d)d.setAttribute('class',m)}
 
 /* ---------- scenes ---------- */
-function go(i){const n=Math.max(0,Math.min(SCENES.length-1,i));if(n!==S)SFX.swoosh();S=n;render();window.scrollTo({top:0,behavior:'smooth'})}
+const KEYS=['open','rule','case','free','lineup','verdict','numbers','proof'];
+function go(i){S=Math.max(0,Math.min(KEYS.length-1,i));render();window.scrollTo({top:0,behavior:'smooth'})}
+function setLang(l){LANG=l;try{localStorage.setItem('cv_lang',l)}catch(e){}document.documentElement.lang=l;
+ document.querySelectorAll('[data-lang]').forEach(b=>b.classList.toggle('on',b.dataset.lang==l));
+ document.querySelectorAll('[data-t]').forEach(e=>e.textContent=L()[e.dataset.t]);setSnd(SND);render()}
 function render(){
- run++;
- const sc=SCENES[S];
- document.getElementById('chips').innerHTML=SCENES.map((s,i)=>`<button class="chip ${i==S?'on':''}" onclick="go(${i})">${s.t}</button>`).join('');
- document.getElementById('pos').textContent=`${sc.t} · ${S+1} of ${SCENES.length}`;
+ run++; stopVoice();
+ const k=KEYS[S], l=L();
+ document.getElementById('chips').innerHTML=l.scenes.map((s,i)=>`<button class="chip ${i==S?'on':''}" onclick="go(${i})">${s}</button>`).join('');
+ document.getElementById('pos').textContent=`${l.scenes[S]} · ${S+1} ${l.of} ${KEYS.length}`;
  document.getElementById('prev').style.visibility=S?'visible':'hidden';
- const nx=document.getElementById('next');
- nx.style.visibility=S<SCENES.length-1?'visible':'hidden';
- nx.textContent=['Meet the detective →','Open the case files →','Interrogate →','The lineup →','Verdict →','The numbers →','Proof →',''][S];
- main.innerHTML=`<section class="scene">${VIEW[sc.k]()}</section>`;
- (AFTER[sc.k]||(()=>{}))();
+ const nx=document.getElementById('next'); nx.style.visibility=S<KEYS.length-1?'visible':'hidden'; nx.textContent=l.next[S];
+ main.innerHTML=`<section class="scene">${VIEW[k]()}</section>`;
+ (AFTER[k]||(()=>{}))();
  const chip=document.querySelector('.chip.on'); if(chip)chip.scrollIntoView({inline:'center',block:'nearest'});
 }
 const T=()=>D.tasks[cur];
 const caseName=t=>`${t.repo.split('/')[1]} #${t.num}`;
+function bar(lb,v,c,label){return `<div class="bar">${lb}<div><span style="background:${c}" data-w="${(v*100).toFixed(1)}"></span></div><b class="v">${label!=null?label:pc(v)}</b></div>`}
 
 const VIEW={
-open:()=>`<h1 class="hero">Asked where a bug lives,<br>a small model named <span class="r">${X.free_claims||425}</span> functions.</h1>
- <p class="hero-sub" id="reveal" style="opacity:0;transition:opacity 1s"><b style="font:italic 600 clamp(30px,4vw,44px)/1.1 var(--f-title);color:var(--red)">${pc(X.invented||.722)} of them do not exist.</b></p>
- <div style="display:flex;justify-content:center;margin-top:10px" id="opendot"></div>
- <span class="ghostline">A detective story where the evidence is one real line of code.</span>`,
-rule:()=>stage(`<div class="kicker">The rule</div><h2 class="t">Cite, or vanish.</h2>
- <p class="lede">Gemma 4 E4B is small enough to run on a laptop, offline and free. It is also a confident storyteller. So every claim it makes must pass three checks. Fail one, and the claim disappears before the coding agent ever sees it.</p>
- <div class="grid3">
-  <div class="card rule"><span class="n">CHECK 1</span><b>On the shortlist</b><p>It may only point at one of ${D.tasks[0].n_shortlist} functions that search found for this bug.</p></div>
-  <div class="card rule"><span class="n">CHECK 2</span><b>Exists in the code</b><p>The name must be a real function or class in the repository's code graph.</p></div>
-  <div class="card rule"><span class="n">CHECK 3</span><b>Copy one real line</b><p>It must quote a line that appears, character for character, in that function.</p></div>
- </div>
- <p class="note">No second model, no training. A few microseconds of plain string matching.</p>`),
-case:()=>stage(`<div class="kicker">Case files</div><h2 class="t">Pick a real bug.</h2>
- <p class="lede">Real issues from the open-source library <b>rich</b>. Each file holds what Gemma 4 E4B actually answered in our experiment, replayed step by step.</p>
- <div class="cases">${D.tasks.map((t,i)=>`<button class="case ${i==cur?'on':''}" onclick="cur=${i};st={};go(3)"><span class="tab">Case ${i+1}</span><b>#${t.num}</b><span>${esc(t.repo)}</span></button>`).join('')}</div>
- <p class="note">Not hand-picked: the first task of each outcome group, in id order. Two of these cases end badly, on purpose.</p>`),
-free:()=>{const t=T();return stage(`<div class="kicker">${esc(caseName(t))} · Interrogation</div><h2 class="t">First, no rules.</h2>
- <p class="lede">We asked Gemma 4 E4B, with no list and no proof required: which functions should change to fix this bug? Here are its suspects.</p>
- <div class="claims">${t.free.map((x,i)=>`<div class="claim" id="f${i}"><code>${esc(x.id)}</code><small>“${esc(x.reason)}”</small><span class="stamp ${x.kept?'ok':'bad'}">${x.kept?'exists':'no such function'}</span></div>`).join('')||'<p class="note">No usable answer.</p>'}</div>
- <button class="go" id="fbtn" onclick="checkFree()">🔍 Check them against the code</button><p class="note" id="fsum"></p>`)},
-lineup:()=>{const t=T();return stage(`<div class="kicker">${esc(caseName(t))} · The lineup</div><h2 class="t">Now: only these ${t.n_shortlist}.</h2>
- <p class="lede">Search on a plain CPU picks ${t.n_shortlist} real functions. Gemma may only point at one of them, and must copy a line as proof.</p>
+open:()=>{const l=L();return `<h1 class="hero">${l.h1a} <span class="r">${X.free_claims||425}</span> ${l.h1b}</h1>
+ <p class="hero-sub" id="reveal" style="opacity:0;transition:opacity 1s"><b style="font:italic 600 clamp(30px,4vw,44px)/1.1 var(--f-title);color:var(--red)">${pc(X.invented||.722)} ${l.h1c}</b></p>
+ <div style="display:flex;justify-content:center;margin-top:10px" id="opendot"></div><span class="ghostline">${l.tag}</span>`},
+rule:()=>{const l=L(),n=D.tasks[0].n_shortlist;return stage(`<div class="kicker">${l.k_rule}</div><h2 class="t">${l.t_rule}</h2><p class="lede">${l.l_rule}</p>
+ <div class="grid3"><div class="card rule"><span class="n">${l.c1}</span><b>${l.c1b}</b><p>${l.c1p(n)}</p></div>
+ <div class="card rule"><span class="n">${l.c2}</span><b>${l.c2b}</b><p>${l.c2p}</p></div>
+ <div class="card rule"><span class="n">${l.c3}</span><b>${l.c3b}</b><p>${l.c3p}</p></div></div><p class="note">${l.rnote}</p>`)},
+case:()=>{const l=L();return stage(`<div class="kicker">${l.k_case}</div><h2 class="t">${l.t_case}</h2><p class="lede">${l.l_case}</p>
+ <div class="cases">${D.tasks.map((t,i)=>`<button class="case ${i==cur?'on':''}" onclick="cur=${i};go(3)"><span class="tab">${l.casen} ${i+1}</span><b>#${t.num}</b><span>${esc(t.repo)}</span></button>`).join('')}</div><p class="note">${l.cnote}</p>`)},
+free:()=>{const l=L(),t=T();return stage(`<div class="kicker">${esc(caseName(t))} · ${l.k_free}</div><h2 class="t">${l.t_free}</h2><p class="lede">${l.l_free}</p>
+ <div class="claims">${t.free.map((x,i)=>`<div class="claim" id="f${i}"><code>${esc(x.id)}</code><small>“${esc(x.reason)}”</small><span class="stamp ${x.kept?'ok':'bad'}">${x.kept?l.exists:l.nosuch}</span></div>`).join('')||`<p class="note">${l.noans}</p>`}</div>
+ <button class="go" id="fbtn" onclick="checkFree()">${l.bfree}</button><p class="note" id="fsum"></p>`)},
+lineup:()=>{const l=L(),t=T(),n=t.n_shortlist;return stage(`<div class="kicker">${esc(caseName(t))} · ${l.k_line}</div><h2 class="t">${l.t_line(n)}</h2><p class="lede">${l.l_line(n)}</p>
  <div class="lineup">${t.shortlist.map((x,i)=>`<div class="sus" id="s${i}"><i>${i+1}</i>${esc(x)}</div>`).join('')}</div>
- <div class="answer" id="ans">${t.cite.length?t.cite.map(q=>`{ <span class="k">"id"</span>: <span class="s">"${esc(q.raw)}"</span>, <span class="k">"evidence"</span>: <span class="s">"${esc(q.evidence)}"</span> }`).join('<br>'):'(no usable answer)'}</div>
- <button class="go" id="cbtn" onclick="checkCite()">🔍 Run the three checks</button>
- <div class="checks" id="checks"></div>`)},
-verdict:()=>{const t=T();const fk=t.free.filter(x=>x.kept),hit=t.cite[0]&&t.cite[0].gold,fhit=fk[0]&&fk[0].gold;
- return stage(`<div class="kicker">${esc(caseName(t))} · Verdict</div><h2 class="t">What did the real fix change?</h2>
- <p class="lede">The maintainers already fixed this bug. Their patch tells us the right answer.</p>
- <div class="fix card">Changed in the real fix: <code>${t.gold.map(esc).join(', ')}</code><br><a href="https://github.com/${esc(t.repo)}/issues/${esc(t.num)}" target="_blank" rel="noopener">Open ${esc(t.repo)}#${esc(t.num)} on GitHub ↗</a></div>
+ <div class="answer">${t.cite.length?t.cite.map(q=>`{ <span class="k">"id"</span>: <span class="s">"${esc(q.raw)}"</span>, <span class="k">"evidence"</span>: <span class="s">"${esc(q.evidence)}"</span> }`).join('<br>'):'('+l.noans+')'}</div>
+ <button class="go" id="cbtn" onclick="checkCite()">${l.bcite}</button><div class="checks" id="checks"></div>`)},
+verdict:()=>{const l=L(),t=T(),fk=t.free.filter(x=>x.kept),hit=t.cite[0]&&t.cite[0].gold,fhit=fk[0]&&fk[0].gold;
+ return stage(`<div class="kicker">${esc(caseName(t))} · ${l.k_verd}</div><h2 class="t">${l.t_verd}</h2><p class="lede">${l.l_verd}</p>
+ <div class="fix card">${l.changed} <code>${t.gold.map(esc).join(', ')}</code><br><a href="https://github.com/${esc(t.repo)}/issues/${esc(t.num)}" target="_blank" rel="noopener">${l.open} ${esc(t.repo)}#${esc(t.num)} ${l.ongh}</a></div>
  <div class="verdict" style="margin-top:14px">
-  <div class="vcard ${fhit?'ok':'bad'}"><span class="lbl">Free answer, first pick</span><b>${fk.length?(fhit?'Correct':'Wrong'):'Nothing left'}</b><span class="note">${fk.length?'':'Every name it gave was invented.'}</span></div>
-  <div class="vcard ${hit?'ok':'bad'}"><span class="lbl">Cite or vanish, first pick</span><b>${t.cite.length?(hit?'Correct':'Wrong'):'Nothing left'}</b><span class="note">${t.goldrank.length?`The right function was #${t.goldrank.join(', #')} on the list.`:'The right function was not on the list, so no citation could find it.'}</span></div>
- </div>
- <button class="go gold" onclick="cur=(cur+1)%D.tasks.length;st={};go(3)">Next case →</button>`)},
-numbers:()=>stage(`<div class="kicker">All the cases, not just these</div><h2 class="t">Small model, real answers.</h2>
- <p class="lede">Same Gemma 4 E4B, same laptop-sized budget. The only change is the rule.</p>
+  <div class="vcard ${fhit?'ok':'bad'}"><span class="lbl">${l.vfree}</span><b>${fk.length?(fhit?l.correct:l.wrong):l.none}</b><span class="note">${fk.length?'':l.allinv}</span></div>
+  <div class="vcard ${hit?'ok':'bad'}"><span class="lbl">${l.vcite}</span><b>${t.cite.length?(hit?l.correct:l.wrong):l.none}</b><span class="note">${t.goldrank.length?l.wasat(t.goldrank.join(', #')):l.notlist}</span></div></div>
+ <button class="go gold" onclick="cur=(cur+1)%D.tasks.length;go(3)">${l.nextcase}</button>`)},
+numbers:()=>{const l=L();return stage(`<div class="kicker">${l.k_num}</div><h2 class="t">${l.t_num}</h2><p class="lede">${l.l_num}</p>
  <div class="stats">
-  <div class="stat"><div class="big"><span class="a">${pc(N.free_hit1)} →</span> <span data-to="${N.cite_hit1}">0%</span></div><p>right function on the first try, ${N.n} competition bugs</p>
-   <div class="bars">${bar('Free answer',N.free_hit1,'var(--bad)')}${bar('Search only',N.retr_hit1,'var(--mut)')}${bar('Cite or vanish',N.cite_hit1,'var(--ok)')}</div></div>
-  <div class="stat"><div class="big"><span class="a">${pc(X.live_retr||.237)} →</span> <span data-to="${X.live_cite||.5}">0%</span></div><p>on ${X.live_tasks||120} newer bugs from ${X.live_repos||68} other repositories</p>
-   <div class="bars">${bar('Free answer',X.live_free||.061,'var(--bad)')}${bar('Search only',X.live_retr||.237,'var(--mut)')}${bar('Cite or vanish',X.live_cite||.5,'var(--ok)')}</div></div>
-  <div class="stat"><div class="big"><span class="a">${N.agent_base} →</span> <span data-n="${N.agent_ours}">0</span></div><p>bugs actually fixed by a full Gemma 4 E4B coding agent, out of ${N.agent_tasks}, in the official harness</p>
-   <div class="bars">${bar('Sample agent',N.agent_base/N.agent_tasks,'var(--mut)',N.agent_base)}${bar('With the rule',N.agent_ours/N.agent_tasks,'var(--gold)',N.agent_ours)}</div></div>
- </div>`),
-proof:()=>stage(`<div class="kicker">Proof and fine print</div><h2 class="t">Check our work.</h2>
- <div class="links">
-  <a class="card" href="https://www.kaggle.com/competitions/gemma-4-developer-agent-paper" target="_blank" rel="noopener"><b>The paper</b><span>Gemma 4 Developer Agent Paper Track on Kaggle: method, tables, confidence intervals.</span></a>
-  <a class="card" href="https://github.com/jenniferevangelista-de/cite-or-vanish" target="_blank" rel="noopener"><b>This page</b><span>One HTML file. Every number and answer above is embedded and readable.</span></a>
-  <a class="card" href="https://huggingface.co/datasets/SWE-bench-Live/SWE-bench-Live" target="_blank" rel="noopener"><b>The 68 new repositories</b><span>SWE-bench-Live (MIT), used for the out-of-distribution check.</span></a>
- </div>
- <p class="fine">This page replays saved runs of Gemma 4 E4B (QAT) on ${N.n} bug-localization tasks. Nothing is computed live and no model is called. The cases are the first of each outcome group in id order, not chosen to flatter. The third check (the copied line must appear in the function's code) ran during the experiment; the source code is not bundled here, so the page shows its result instead of re-running it. The newer issues predate Gemma 4, so they test new repositories, not unseen data.</p>`)
+  <div class="stat"><div class="big"><span class="a">${pc(N.free_hit1)} →</span> <span data-to="${N.cite_hit1}">0%</span></div><p>${l.s1(N.n)}</p>
+   <div class="bars">${bar(l.bfree2,N.free_hit1,'var(--bad)')}${bar(l.bsearch,N.retr_hit1,'var(--mut)')}${bar(l.bcv,N.cite_hit1,'var(--ok)')}</div></div>
+  <div class="stat"><div class="big"><span class="a">${pc(X.live_retr)} →</span> <span data-to="${X.live_cite}">0%</span></div><p>${l.s2(X.live_tasks,X.live_repos)}</p>
+   <div class="bars">${bar(l.bfree2,X.live_free,'var(--bad)')}${bar(l.bsearch,X.live_retr,'var(--mut)')}${bar(l.bcv,X.live_cite,'var(--ok)')}</div></div>
+  <div class="stat"><div class="big"><span class="a">${N.agent_base} →</span> <span data-n="${N.agent_ours}">0</span></div><p>${l.s3(N.agent_tasks)}</p>
+   <div class="bars">${bar(l.bagent,N.agent_base/N.agent_tasks,'var(--mut)',N.agent_base)}${bar(l.brule,N.agent_ours/N.agent_tasks,'var(--gold)',N.agent_ours)}</div></div></div>`)},
+proof:()=>{const l=L();return stage(`<div class="kicker">${l.k_proof}</div><h2 class="t">${l.t_proof}</h2>
+ <div class="links"><a class="card" href="https://www.kaggle.com/competitions/gemma-4-developer-agent-paper" target="_blank" rel="noopener"><b>${l.p1}</b><span>${l.p1s}</span></a>
+  <a class="card" href="https://github.com/jenniferevangelista-de/cite-or-vanish" target="_blank" rel="noopener"><b>${l.p2}</b><span>${l.p2s}</span></a>
+  <a class="card" href="https://huggingface.co/datasets/SWE-bench-Live/SWE-bench-Live" target="_blank" rel="noopener"><b>${l.p3}</b><span>${l.p3s}</span></a></div>
+ <p class="fine">${l.fine(N.n)}</p>`)}
 };
-function bar(l,v,c,label){return `<div class="bar">${l}<div><span style="background:${c}" data-w="${(v*100).toFixed(1)}"></span></div><b class="v">${label!=null?label:pc(v)}</b></div>`}
 
 const AFTER={
 open:async()=>{const box=document.getElementById('opendot');box.innerHTML=`<div style="width:170px">${document.getElementById('dot-svg').innerHTML}</div>`;mood('shock');
  await sleep(900);const r=document.getElementById('reveal');if(r)r.style.opacity=1},
-rule:()=>say("I'm Dot. I hunt bugs, and the stories small models tell about them. My rule is simple: cite real code, or vanish.","happy"),
-case:()=>say("Pick a file. Every answer in there is exactly what Gemma said, no edits.","happy"),
-free:()=>say("Lots of confident names. Let me check if any of these functions are real.","scan"),
-lineup:()=>say("Same bug. This time Gemma has to point at the list and copy a line as proof.","scan"),
-verdict:()=>{const t=T();const hit=t.cite[0]&&t.cite[0].gold;setTimeout(()=>hit?SFX.bell():SFX.thud(),350);
- say(hit?"Case closed. The cited function is the one the maintainers fixed.":t.goldrank.length?"Not this time. The right one was on the list, but Gemma pointed elsewhere.":"Not this time. Search never put the right function on the list.",hit?'happy':'shock')},
-numbers:async()=>{say("One case is a story. Here are all of them.","happy");await sleep(150);
+rule:()=>say('rule','happy'),case:()=>say('case','happy'),free:()=>say('free','scan'),lineup:()=>say('lineup','scan'),
+verdict:()=>{const t=T(),hit=t.cite[0]&&t.cite[0].gold;setTimeout(()=>hit?SFX.bell():SFX.low(),300);
+ say(hit?'verdict_hit':t.goldrank.length?'verdict_wrong':'verdict_miss',hit?'happy':'shock')},
+numbers:async()=>{say('numbers','happy');await sleep(150);
  document.querySelectorAll('[data-w]').forEach(s=>s.style.width=s.dataset.w+'%');
  document.querySelectorAll('[data-to]').forEach(el=>count(el,+el.dataset.to,v=>pc(v)));
  document.querySelectorAll('[data-n]').forEach(el=>count(el,+el.dataset.n,v=>Math.round(v)))},
-proof:()=>say("Everything here is a replay of saved runs. Go check the receipts.","happy")
-};
-async function count(el,to,f){const id=run;for(let i=0;i<=40;i++){if(id!==run)return;el.textContent=f(to*i/40);if(i%5==0)SFX.tick();await sleep(25)}}
+proof:()=>say('proof','happy')};
+async function count(el,to,f){const id=run;for(let i=0;i<=40;i++){if(id!==run)return;el.textContent=f(to*i/40);await sleep(25)}}
 
-async function checkFree(){const id=run,t=T();document.getElementById('fbtn').disabled=true;mood('scan');
- for(let i=0;i<t.free.length;i++){const c=document.getElementById('f'+i);c.classList.add('scan');SFX.tick();await sleep(650);if(id!==run)return;
-  c.classList.remove('scan');c.querySelector('.stamp').classList.add('show');t.free[i].kept?SFX.ding():SFX.thud();await sleep(250);c.classList.add(t.free[i].kept?'stay':'gone');if(!t.free[i].kept)SFX.pop();await sleep(300)}
+async function checkFree(){const id=run,t=T(),l=L();document.getElementById('fbtn').disabled=true;mood('scan');
+ for(let i=0;i<t.free.length;i++){const c=document.getElementById('f'+i);c.classList.add('scan');await sleep(650);if(id!==run)return;
+  c.classList.remove('scan');c.querySelector('.stamp').classList.add('show');await sleep(250);c.classList.add(t.free[i].kept?'stay':'gone');t.free[i].kept?SFX.ding():SFX.pop();await sleep(300)}
  const k=t.free.filter(x=>x.kept).length;
- document.getElementById('fsum').innerHTML=k?`<b>${t.free.length-k} of ${t.free.length}</b> names do not exist in the repository. ${k} survived.`:`<b>All ${t.free.length}</b> names are invented. An agent would have chased ${t.free.length} dead ends.`;
- say(k?"Some of those don't exist at all. An agent would waste turns on them.":"Not one of them exists. Pure fiction.",'shock')}
+ document.getElementById('fsum').innerHTML=k?l.fsome(t.free.length-k,t.free.length,k):l.fnone(t.free.length);
+ say(k?'free_some':'free_none','shock')}
 
-async function checkCite(){const id=run,t=T();document.getElementById('cbtn').disabled=true;mood('scan');
- const box=document.getElementById('checks');const sl=t.shortlist;
+async function checkCite(){const id=run,t=T(),l=L();document.getElementById('cbtn').disabled=true;mood('scan');
+ const box=document.getElementById('checks'),sl=t.shortlist;
  for(const q of t.cite){const idx=sl.indexOf(q.resolved),isNum=/^\[?\d+\]?$/.test(q.raw);
-  const rows=[
-   [idx>=0,`On the shortlist: ${isNum?`list number <code>${esc(q.raw)}</code> → `:''}<code>${esc(q.resolved||q.raw)}</code>`],
-   [!!q.resolved,`Exists in the code graph`],
-   [!!q.evidence,`Copied line found in its source: <code>${esc(q.evidence)}</code>`]];
-  for(const [ok,txt] of rows){const d=document.createElement('div');d.className='chk';d.innerHTML=`<span class="ic">${ok?'✅':'❌'}</span><span>${txt}</span>`;box.appendChild(d);d.scrollIntoView({block:'center',behavior:'smooth'});
-   await sleep(420);if(id!==run)return;d.classList.add('on',ok?'ok':'bad');ok?SFX.ding():SFX.thud();
-   if(txt.startsWith('On the')&&idx>=0){document.getElementById('s'+idx).classList.add('cited')}}
+  const rows=[[idx>=0,`${l.ch1}: ${isNum?`${l.lnum} <code>${esc(q.raw)}</code> → `:''}<code>${esc(q.resolved||q.raw)}</code>`,idx],
+   [!!q.resolved,l.ch2],[!!q.evidence,`${l.ch3}: <code>${esc(q.evidence)}</code>`]];
+  for(const [ok,txt,ix] of rows){const d=document.createElement('div');d.className='chk';d.innerHTML=`<span class="ic">${ok?'✅':'❌'}</span><span>${txt}</span>`;box.appendChild(d);d.scrollIntoView({block:'center',behavior:'smooth'});
+   await sleep(420);if(id!==run)return;d.classList.add('on',ok?'ok':'bad');ok?SFX.ding():SFX.low();
+   if(ix!=null&&ix>=0)document.getElementById('s'+ix).classList.add('cited')}
   await sleep(250)}
  const kept=t.cite.filter(q=>q.resolved).length;
- const p=document.createElement('p');p.className='note';p.innerHTML=`<b>${kept} of ${t.cite.length}</b> citations passed. Every location handed to the agent is real.`;box.appendChild(p);
- const n=document.createElement('button');n.className='go gold';n.textContent='See the verdict →';n.onclick=()=>go(5);box.appendChild(n);n.scrollIntoView({block:'center',behavior:'smooth'});
- say("Every citation points at real code, with proof. Now, was it the right one?",'happy')}
+ const p=document.createElement('p');p.className='note';p.innerHTML=l.cdone(kept,t.cite.length);box.appendChild(p);
+ const n=document.createElement('button');n.className='go gold';n.textContent=l.bverd;n.onclick=()=>go(5);box.appendChild(n);n.scrollIntoView({block:'center',behavior:'smooth'});
+ say('cite_done','happy')}
 
 document.getElementById('next').onclick=()=>go(S+1);
-document.getElementById('snd').onclick=()=>{setSnd(!SND);if(SND)SFX.ding()};setSnd(SND);
 document.getElementById('prev').onclick=()=>go(S-1);
+document.getElementById('snd').onclick=()=>setSnd(!SND);
+document.querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
 addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(S+1);if(e.key==='ArrowLeft')go(S-1)});
-render();
+setLang(LANG);
 </script></body></html>
