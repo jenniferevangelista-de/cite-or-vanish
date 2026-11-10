@@ -1,71 +1,296 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cite or Vanish</title>
+<title>Cite or Vanish · The Bug Detective</title>
+<meta name="description" content="Replay how a small on-device model (Gemma 4 E4B) stops inventing code: every claim must cite a real function and copy one real line, or it vanishes.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,600;1,500;1,600&family=Fredoka:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#faf6ee;--ink:#1d1b16;--mut:#6b655a;--card:#fff;--line:#e4dccb;--ok:#1c7c4d;--bad:#c2381f;--acc:#e45a12}
-@media(prefers-color-scheme:dark){:root{--bg:#15130f;--ink:#f1ece0;--mut:#a39b8a;--card:#1f1c16;--line:#3a3529;--ok:#4cc38a;--bad:#ff7a63;--acc:#ff8a3d}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,Segoe UI,sans-serif}
-main{max-width:920px;margin:0 auto;padding:20px 16px 60px}
-h1{font-size:28px;margin:0 0 4px}h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:0 0 10px}
-.sub{color:var(--mut);margin:0 0 18px}
-.big{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:20px}
-.big div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
-.big b{display:block;font-size:34px;line-height:1.1;color:var(--acc)}.big span{color:var(--mut);font-size:14px}
-.pick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
-button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 14px}
-button.on{background:var(--ink);color:var(--bg)}button.go{background:var(--acc);color:#fff;border-color:var(--acc)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
-.sym{display:block;padding:6px 10px;border-radius:8px;border:1px solid var(--line);margin:6px 0;font-family:ui-monospace,Consolas,monospace;font-size:14px;transition:.4s}
-.sym small{display:block;font-family:system-ui;color:var(--mut);font-size:13px}
-.sym.gone{opacity:.55;border-color:var(--bad);color:var(--bad)}
-.sym.stay{border-color:var(--ok)}.tag{font-family:system-ui;font-size:12px;font-weight:600;margin-left:6px}
-ol.sl{columns:2;margin:0;padding-left:28px;font-family:ui-monospace,Consolas,monospace;font-size:13px}
-ol.sl li{padding:1px 4px;border-radius:4px}ol.sl li.cited{outline:2px solid var(--acc)}ol.sl li.gold{background:color-mix(in srgb,var(--ok) 30%,transparent)}
-@media(max-width:600px){ol.sl{columns:1}}
-pre{margin:6px 0 0;padding:8px 10px;background:color-mix(in srgb,var(--line) 40%,transparent);border-radius:8px;white-space:pre-wrap;word-break:break-word;font-size:13px}
-.v{font-weight:700}.ok{color:var(--ok)}.bad{color:var(--bad)}
-footer{color:var(--mut);font-size:13px;margin-top:24px}a{color:var(--acc)}
-</style></head><body><main>
-<h1>Cite or Vanish</h1>
-<p class="sub">A small model may only point at functions from a short list and copy one real line of code as proof. A validator deletes whatever does not check out. Pick a real task and replay what Gemma 4 E4B did.</p>
-<div class="big" id="big"></div>
-<h2>1. Pick a real task</h2><div class="pick" id="pick"></div>
-<div id="view"></div>
-<footer>Replay of saved runs of Gemma 4 E4B (QAT) on <span id="nn"></span> bug-localization tasks from fastapi, requests and rich. Nothing is computed live here and no model is called. The tasks shown are the first of each outcome group in id order, not hand-picked for flattery. The third validator check (the copied line must appear in the function's code) ran during the experiment; the code itself is not bundled, so this page does not replay it.</footer>
-</main>
+:root{--bg:#14101c;--bg2:#1d1528;--card:#231a30;--card2:#2c2140;--line:#3d2f52;--ink:#f6efe6;--mut:#b8a9c9;--red:#ff5a5f;--red-d:#d63b41;--gold:#e8c27a;--gold-d:#b98d45;--ok:#5fd39a;--bad:#ff7a7a;
+--f-title:"Cormorant",Georgia,serif;--f-body:"Fredoka",system-ui,sans-serif;--f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;background:radial-gradient(1200px 700px at 70% -10%,#3a1f3f 0,transparent 60%),radial-gradient(900px 600px at 0% 110%,#2a1b45 0,transparent 55%),var(--bg);color:var(--ink);font:17px/1.5 var(--f-body);overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;background-image:radial-gradient(rgba(255,255,255,.06) 1px,transparent 1px);background-size:28px 28px;pointer-events:none}
+a{color:var(--gold)}button{font:inherit;cursor:pointer;color:inherit}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 22px;background:linear-gradient(var(--bg) 60%,transparent)}
+.brand{font:italic 600 26px/1 var(--f-title);white-space:nowrap}.brand em{color:var(--red);font-style:italic}
+.badge{font:600 11px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;background:var(--gold);color:#2a1838;border-radius:999px;padding:6px 11px}
+.hdr-r{margin-left:auto;display:flex;gap:8px}
+.pill{border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:999px;padding:7px 14px;font-size:14px;color:var(--ink);text-decoration:none;white-space:nowrap}
+.pill:hover{border-color:var(--gold)}
+main{max-width:1080px;margin:0 auto;padding:8px 22px 150px;min-height:calc(100vh - 70px)}
+.scene{animation:in .55s ease both}@keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.stage{display:grid;grid-template-columns:200px 1fr;gap:28px;align-items:start;margin-top:10px}
+@media(max-width:760px){.stage{grid-template-columns:1fr;gap:10px}.dotbox{display:flex;align-items:flex-end;gap:10px}.dotbox svg{width:96px;height:auto}}
+.dotbox{position:sticky;top:78px}
+.bubble{position:relative;background:var(--ink);color:#2a1838;border-radius:18px;padding:12px 15px;font-size:15px;line-height:1.4;min-height:48px;margin-top:6px}
+.bubble:before{content:"";position:absolute;left:34px;top:-9px;border:10px solid transparent;border-top:0;border-bottom-color:var(--ink)}
+@media(max-width:760px){.bubble{flex:1;margin:0 0 18px}.bubble:before{left:-9px;top:auto;bottom:14px;border:10px solid transparent;border-left:0;border-right-color:var(--ink)}}
+h1.hero{font:italic 600 clamp(40px,7vw,84px)/1.02 var(--f-title);margin:40px 0 10px;text-align:center}
+h1.hero .r{color:var(--red)}
+.hero-sub{text-align:center;color:var(--mut);font-size:19px;margin:0 auto 24px;max-width:640px}
+h2.t{font:italic 600 clamp(30px,4.4vw,46px)/1.08 var(--f-title);margin:6px 0 6px}
+.lede{color:var(--mut);margin:0 0 18px;max-width:700px}
+.kicker{font:600 12px/1 var(--f-body);letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:18px;padding:18px}
+.rule b{display:block;font:italic 600 26px/1.1 var(--f-title);margin:8px 0 4px}.rule .n{font:600 13px var(--f-mono);color:var(--gold)}
+.rule p{margin:0;color:var(--mut);font-size:15px}
+.cases{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.case{text-align:left;background:linear-gradient(180deg,#3a2a1e,#2a1f17);border:1px solid #5a4430;border-radius:14px;padding:14px 16px;position:relative;transition:transform .2s,border-color .2s}
+.case:hover,.case.on{transform:translateY(-3px) rotate(-.5deg);border-color:var(--gold)}
+.case .tab{position:absolute;top:-10px;left:16px;background:var(--gold);color:#2a1838;font:600 11px/1 var(--f-body);letter-spacing:.1em;padding:5px 9px;border-radius:6px 6px 0 0;text-transform:uppercase}
+.case b{display:block;font:italic 600 28px/1.1 var(--f-title);margin-top:6px}.case span{color:#d9c4a8;font-size:14px}
+.claims{display:grid;gap:10px}
+.claim{position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;transition:all .6s}
+.claim code{font:600 14px/1.4 var(--f-mono);color:var(--ink);word-break:break-all}.claim small{display:block;color:var(--mut);font-size:14px;margin-top:3px}
+.claim.scan{border-color:var(--gold);box-shadow:0 0 0 3px rgba(232,194,122,.18)}
+.claim.gone{transform:scale(.98);border-style:dashed;border-color:rgba(255,122,122,.45);background:rgba(35,26,48,.5)}
+.claim.gone code,.claim.gone small{opacity:.3;filter:blur(.8px)}
+.claim.gone code{text-decoration:line-through;text-decoration-color:var(--bad)}
+.claim.stay{border-color:var(--ok);box-shadow:0 0 0 3px rgba(95,211,154,.15)}
+.stamp{position:absolute;right:14px;top:50%;transform:translateY(-50%) rotate(-8deg) scale(1.6);opacity:0;font:600 12px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;border:2px solid currentColor;border-radius:6px;padding:6px 8px;transition:all .35s cubic-bezier(.2,1.6,.4,1);filter:none!important}
+.stamp.show{opacity:1;transform:translateY(-50%) rotate(-8deg) scale(1)}
+.stamp.bad{color:var(--bad)}.stamp.ok{color:var(--ok)}
+
+.go{display:inline-flex;align-items:center;gap:8px;background:var(--red);color:#fff;border:0;border-radius:999px;padding:11px 20px;font-weight:600;font-size:16px;box-shadow:0 8px 24px rgba(255,90,95,.3);margin:16px 0 4px;transition:transform .15s}
+.go:hover{transform:translateY(-2px)}.go:disabled{opacity:.45;cursor:default;transform:none}
+.go.gold{background:var(--gold);color:#2a1838;box-shadow:0 8px 24px rgba(232,194,122,.25)}
+.note{color:var(--mut);font-size:15px;margin:10px 0 0}
+.lineup{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:7px}
+.sus{display:flex;gap:9px;align-items:baseline;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:7px 10px;font:13px/1.35 var(--f-mono);word-break:break-all;transition:all .45s}
+.sus i{font-style:normal;color:var(--gold);min-width:22px}
+.sus.cited{border-color:var(--gold);background:#3a2c1e;transform:scale(1.03)}
+.sus.gold{border-color:var(--ok);background:#173a2c}
+.sus.dim{opacity:.35}
+.answer{background:#0e0b13;border:1px solid var(--line);border-radius:14px;padding:14px 16px;font:14px/1.5 var(--f-mono);margin:14px 0 0;overflow-x:auto}
+.answer .k{color:var(--gold)}.answer .s{color:#ffb4b6}
+.checks{display:grid;gap:8px;margin-top:12px}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:var(--card);border:1px solid var(--line);opacity:.35;transition:all .4s}
+.chk.on{opacity:1}.chk.on.ok{border-color:var(--ok)}.chk.on.bad{border-color:var(--bad)}
+.chk .ic{font-size:18px;line-height:1.2;width:22px;text-align:center}
+.chk code{font:600 13px var(--f-mono);word-break:break-all}
+.verdict{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:6px}
+.vcard{border-radius:18px;padding:18px;border:1px solid var(--line);background:var(--card)}
+.vcard .lbl{font:600 12px/1 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+.vcard b{display:block;font:italic 600 34px/1.1 var(--f-title);margin:8px 0 4px}
+.vcard.ok{border-color:var(--ok)}.vcard.ok b{color:var(--ok)}.vcard.bad{border-color:var(--bad)}.vcard.bad b{color:var(--bad)}
+.fix{margin-top:14px}.fix code{font:600 14px var(--f-mono);color:var(--ok);word-break:break-all}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px}
+.stat{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:20px;padding:20px}
+.stat .big{font:italic 600 clamp(44px,6vw,64px)/1 var(--f-title);color:var(--gold);white-space:nowrap}
+.stat .big .a{color:var(--mut);font-size:.62em}.stat p{margin:8px 0 14px;color:var(--mut);font-size:15px}
+.bars{display:grid;gap:6px}.bar{display:grid;grid-template-columns:96px 1fr 46px;align-items:center;gap:8px;font-size:13px;color:var(--mut)}
+.bar div{height:12px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}.bar div span{display:block;height:100%;width:0;border-radius:99px;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.bar .v{font:600 13px var(--f-mono);color:var(--ink);text-align:right}
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:6px}
+.links a{display:block;text-decoration:none;color:var(--ink)}.links a b{display:block;font:italic 600 24px/1.15 var(--f-title);color:var(--gold)}
+.links a span{color:var(--mut);font-size:14px}
+.fine{color:var(--mut);font-size:13.5px;margin-top:22px;max-width:780px}
+nav.scenes{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:14px 190px 12px;background:linear-gradient(transparent,var(--bg) 38%);display:flex;flex-direction:column;align-items:center;gap:6px}
+.chips{display:flex;gap:7px;overflow-x:auto;max-width:100%;padding:2px 4px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{border:1px solid var(--line);background:rgba(20,16,28,.85);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;white-space:nowrap;color:var(--ink)}
+.chip.on{background:var(--red);border-color:var(--red);color:#fff}
+.pos{font-size:13px;color:var(--mut)}
+.next{position:fixed;right:20px;bottom:56px;z-index:7;background:var(--red);color:#fff;border:0;border-radius:999px;padding:13px 22px;font-weight:600;font-size:17px;box-shadow:0 10px 30px rgba(255,90,95,.35)}
+.prev{position:fixed;left:20px;bottom:56px;z-index:7;background:rgba(20,16,28,.85);border:1px solid var(--line);border-radius:999px;padding:12px 18px;font-weight:600}
+@media(max-width:760px){.stamp{position:static;display:inline-block;margin-top:8px;transform:rotate(-4deg) scale(1.4)}.stamp.show{transform:rotate(-4deg)}nav.scenes{padding:14px 12px 12px}.next{bottom:84px;right:14px;padding:11px 18px;font-size:15px}.prev{bottom:84px;left:14px;padding:10px 14px}main{padding-bottom:180px}header{padding:12px 16px}.brand{font-size:22px}.hdr-r .pill.hide-s{display:none}}
+/* Dot */
+#dot .bob{animation:bob 3.2s ease-in-out infinite;transform-origin:100px 190px}
+@keyframes bob{50%{transform:translateY(-5px) rotate(-1.5deg)}}
+#dot .lid{transform-origin:center;transform-box:fill-box;animation:blink 5s infinite}
+@keyframes blink{0%,94%,100%{transform:scaleY(0)}96%{transform:scaleY(1)}}
+#dot .mouth{transform-origin:center;transform-box:fill-box;transition:transform .08s}
+#dot .lens{transform-origin:150px 128px;transform-box:view-box}
+#dot.scan .lens{animation:scan 1.1s ease-in-out infinite}
+@keyframes scan{50%{transform:rotate(-14deg) translate(-6px,4px)}}
+#dot.shock .pupil{transform:scale(.7);transform-origin:center;transform-box:fill-box}
+#dot.happy .cheek{opacity:1}
+.ghostline{display:block;text-align:center;color:var(--mut);margin-top:6px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<header>
+ <div class="brand">🐞 Cite <em>or</em> Vanish</div>
+ <span class="badge">Replay of saved runs</span>
+ <div class="hdr-r">
+  <a class="pill hide-s" href="https://www.kaggle.com/competitions/gemma-4-developer-agent-paper" target="_blank" rel="noopener">Paper track</a>
+  <span class="pill">🔒 No model called here</span>
+ </div>
+</header>
+<main id="main"></main>
+<button class="prev" id="prev" aria-label="Previous scene">←</button>
+<button class="next" id="next">Next →</button>
+<nav class="scenes"><div class="chips" id="chips"></div><div class="pos" id="pos"></div></nav>
+
+<template id="dot-svg">
+<svg id="dot" viewBox="0 0 200 230" width="190" height="218" role="img" aria-label="Dot, a ladybug detective with a magnifying glass">
+ <g class="bob">
+  <g stroke="#120d18" stroke-width="5" stroke-linecap="round" fill="none">
+   <path d="M66 188 L58 214"/><path d="M88 196 L86 220"/><path d="M112 196 L114 220"/><path d="M134 188 L142 214"/>
+   <path d="M62 66 Q52 40 44 30"/><path d="M118 66 Q128 40 136 30"/>
+  </g>
+  <circle cx="44" cy="28" r="7" fill="#ff5a5f" stroke="#120d18" stroke-width="4"/><circle cx="136" cy="28" r="7" fill="#ff5a5f" stroke="#120d18" stroke-width="4"/>
+  <ellipse cx="96" cy="148" rx="74" ry="64" fill="#e2393f" stroke="#120d18" stroke-width="6"/>
+  <path d="M96 86 L96 210" stroke="#120d18" stroke-width="5"/>
+  <g fill="#120d18"><circle cx="60" cy="128" r="12"/><circle cx="132" cy="124" r="11"/><circle cx="66" cy="170" r="10"/><circle cx="130" cy="168" r="13"/><circle cx="96" cy="194" r="6"/></g>
+  <ellipse cx="90" cy="84" rx="46" ry="38" fill="#2a2430" stroke="#120d18" stroke-width="6"/>
+  <path d="M42 62 Q90 44 138 62 L132 66 Q90 54 48 66Z" fill="#7a5638" stroke="#120d18" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M54 62 Q58 30 90 28 Q122 30 126 62 Q90 50 54 62Z" fill="#9b6d46" stroke="#120d18" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M58 54 Q90 44 122 54" stroke="#5a3e28" stroke-width="5" fill="none"/>
+  <g><circle cx="74" cy="84" r="12" fill="#fff" stroke="#120d18" stroke-width="3"/><circle class="pupil" cx="76" cy="86" r="5.5" fill="#120d18"/>
+   <circle cx="106" cy="84" r="12" fill="#fff" stroke="#120d18" stroke-width="3"/><circle class="pupil" cx="108" cy="86" r="5.5" fill="#120d18"/>
+   <rect class="lid" x="61" y="71" width="58" height="26" rx="12" fill="#2a2430"/></g>
+  <ellipse class="cheek" cx="60" cy="100" rx="7" ry="4.5" fill="#ff8fa3" opacity=".75"/><ellipse class="cheek" cx="120" cy="100" rx="7" ry="4.5" fill="#ff8fa3" opacity=".75"/>
+  <ellipse class="mouth" cx="90" cy="105" rx="8" ry="3" fill="#7a1622" stroke="#120d18" stroke-width="2.5"/>
+  <g class="lens"><path d="M150 132 L170 160" stroke="#7a5638" stroke-width="7" stroke-linecap="round"/>
+   <circle cx="150" cy="118" r="20" fill="#cdeefc" fill-opacity=".85" stroke="#120d18" stroke-width="5"/><path d="M140 110 Q145 104 152 104" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+  <path d="M40 150 Q28 166 36 182" stroke="#120d18" stroke-width="5" fill="none" stroke-linecap="round"/>
+ </g>
+</svg>
+</template>
+
 <script>
-const D={"tasks": [{"id": "rich_2943", "repo": "Textualize/rich", "num": "2943", "gold": ["rich.style.Style.clear_meta_and_links"], "shortlist": ["examples.fullscreen.make_sponsor_message", "rich.console.Console.set_window_title", "rich.console.Console._check_buffer", "tools.make_terminal_widths.run", "rich.progress.TimeRemainingColumn.render", "rich.style.Style", "rich.style.Style.clear_meta_and_links", "rich.live_render.LiveRender", "rich.text.Text.on", "rich.control.Control", "rich.console.Console.save_svg", "rich.traceback.Traceback.read_code", "rich.highlighter.ISO8601Highlighter", "rich.traceback.install", "rich.prompt.Confirm", "rich.console.Console.save_html", "rich.syntax.Syntax", "rich.text.Text.assemble", "rich.prompt.PromptBase.__call__", "rich.console.Console.export_html"], "goldrank": [7], "free": [{"id": "rich.core.CacheManager.clear_cache", "reason": "The cache needs an explicit clearing mechanism.", "kept": false, "gold": false}, {"id": "rich.core.Meta.clear_meta", "reason": "This method is the trigger for the required cache invalidation.", "kept": false, "gold": false}, {"id": "rich.core.Renderer.render_with_cache", "reason": "The rendering logic likely uses the hashed cache and needs to be aware of meta changes.", "kept": false, "gold": false}, {"id": "rich.core.State.get_cached_value", "reason": "The method that retrieves cached values must check for meta validity before returning a result.", "kept": false, "gold": false}, {"id": "rich.core.Config.update_metadata", "reason": "Any method that modifies the metadata should potentially trigger a cache clear.", "kept": false, "gold": false}], "cite": [{"raw": "7", "resolved": "rich.style.Style.clear_meta_and_links", "evidence": "def clear_meta_and_links(self) -> \"Style\":", "gold": true}], "n_shortlist": 20}, {"id": "rich_3006", "repo": "Textualize/rich", "num": "3006", "gold": ["rich.repr.auto_rich_repr"], "shortlist": ["rich.console.Console.set_window_title", "rich.console.Console._check_buffer", "examples.fullscreen.make_sponsor_message", "rich.pretty._has_default_namedtuple_repr", "rich.pretty._is_dataclass_repr", "rich.progress.Progress.get_default_columns", "tools.make_terminal_widths.run", "rich.repr.auto_rich_repr", "rich.text.Text.__eq__", "rich.style.Style.__eq__", "rich.progress.Progress.update", "rich.repr.do_replace", "rich.repr.auto", "rich.control.Control.__init__", "rich.pretty._traverse", "rich.progress.TimeRemainingColumn.render", "rich.pretty.traverse", "rich.markup.render", "rich.pretty.is_expandable", "rich._win32_console.GetConsoleMode"], "goldrank": [8], "free": [{"id": "rich.parameters.Parameters", "reason": "The class likely contains the logic for parameter sets and the definition of the 'empty' state.", "kept": false, "gold": false}, {"id": "rich.parameters.Parameters.__eq__", "reason": "The equality check (`==`) is where the bug manifests when custom classes override `__eq__`.", "kept": false, "gold": false}, {"id": "rich.parameters.Parameters.empty", "reason": "This is the sentinel value being compared against, and its interaction with custom object equality is the root cause.", "kept": false, "gold": false}], "cite": [{"raw": "8", "resolved": "rich.repr.auto_rich_repr", "evidence": "def auto_rich_repr(self: Type[T]) -> Result:", "gold": true}, {"raw": "12", "resolved": "rich.repr.do_replace", "evidence": "def do_replace(cls: Type[T], angular: Optional[bool] = None) -> Type[T]:", "gold": false}, {"raw": "13", "resolved": "rich.repr.auto", "evidence": "def do_replace(cls: Type[T], angular: Optional[bool] = None) -> Type[T]:", "gold": false}], "n_shortlist": 20}, {"id": "rich_3052", "repo": "Textualize/rich", "num": "3052", "gold": ["rich.prompt.PromptBase.__init__", "rich.prompt.PromptBase.ask", "rich.prompt.PromptBase.check_choice", "rich.prompt.PromptBase.process_response"], "shortlist": ["rich.prompt.PromptBase.ask", "rich.console.Console.set_window_title", "rich.prompt.PromptBase", "examples.fullscreen.make_sponsor_message", "rich.console.Console._check_buffer", "rich.prompt.Prompt", "rich.prompt.PromptBase.make_prompt", "rich.prompt.PromptBase.check_choice", "rich.prompt.PromptBase.__init__", "rich.console.Console.input", "rich.prompt.Confirm", "rich.text.Text.highlight_words", "rich.spinner.Spinner", "rich.prompt.PromptBase.__call__", "rich.live_render.LiveRender", "rich.prompt.PromptBase.process_response", "rich.syntax.Syntax", "rich.tree.Tree.add", "rich._inspect.Inspect", "rich.prompt.Confirm.render_default"], "goldrank": [9, 1, 8, 16], "free": [{"id": "rich.prompt.Prompt.ask", "reason": "This method needs to accept the new 'case_sensitive' parameter and pass it down to the choice validation logic.", "kept": false, "gold": false}, {"id": "rich.prompt.Prompt._ask_with_choices", "reason": "This internal method (or similar logic) is responsible for comparing user input against the provided choices and needs to implement case-insensitive matching when case_sensitive is False.", "kept": false, "gold": false}], "cite": [{"raw": "1", "resolved": "rich.prompt.PromptBase.ask", "evidence": "def ask(", "gold": true}, {"raw": "8", "resolved": "rich.prompt.PromptBase.check_choice", "evidence": "def check_choice(self, value: str) -> bool:", "gold": true}, {"raw": "9", "resolved": "rich.prompt.PromptBase.__init__", "evidence": "def __init__(", "gold": true}], "n_shortlist": 20}, {"id": "rich_3061", "repo": "Textualize/rich", "num": "3061", "gold": ["rich.text.Text.__init__", "rich.text.Text.__rich_console__", "rich.text.Text.append_text", "rich.text.Text.append_tokens", "rich.text.Text.divide", "rich.text.Text.expand_tabs", "rich.text.Text.from_ansi"], "shortlist": ["rich.text.Text.expand_tabs", "examples.fullscreen.make_sponsor_message", "rich.text.Text", "rich.containers.Lines.justify", "rich.text.Text.wrap", "rich.text.Text.__init__", "rich.rule.Rule.__rich_console__", "rich.text.Text.assemble", "rich.highlighter.ISO8601Highlighter", "rich.text.Text.copy_styles", "rich.progress.TimeRemainingColumn.render", "rich.text.Text.from_ansi", "rich.text.Text.truncate", "rich.console.Console._check_buffer", "rich.text.Text.join", "rich.console.Console.export_svg", "rich.text.Text.align", "rich.text.Text.pad", "rich.text.Text.append_text", "rich.text.Text.copy"], "goldrank": [6, 19, 1, 12], "free": [{"id": "rich.text.Text.extend_tabs", "reason": "This is the method explicitly identified as having the bug, needing modification to correctly handle spans when replacing tabs with spaces.", "kept": false, "gold": false}, {"id": "rich.text.Text", "reason": "The Text class holds the state and logic for spans and needs to be updated to ensure span information is preserved during tab extension.", "kept": true, "gold": false}], "cite": [{"raw": "1", "resolved": "rich.text.Text.expand_tabs", "evidence": "def expand_tabs(self, tab_size: Optional[int] = None) -> None:", "gold": true}], "n_shortlist": 20}, {"id": "rich_3454", "repo": "Textualize/rich", "num": "3454", "gold": ["rich.highlighter.ReprHighlighter"], "shortlist": ["examples.fullscreen.make_sponsor_message", "rich.console.Console.set_window_title", "rich.highlighter.ReprHighlighter", "rich.highlighter.ISO8601Highlighter", "rich.progress.TimeRemainingColumn.render", "rich.highlighter.RegexHighlighter", "rich.pretty._has_default_namedtuple_repr", "tools.make_terminal_widths.run", "rich.console.Console._check_buffer", "rich.highlighter.Highlighter.__call__", "rich.color.Color.parse", "rich.highlighter.NullHighlighter", "rich.traceback.install", "rich.logging.RichHandler", "rich.highlighter.RegexHighlighter.highlight", "rich.jupyter.display", "rich.pretty._is_dataclass_repr", "rich.markdown.Markdown", "rich.align.VerticalCenter", "rich._inspect.Inspect.__init__"], "goldrank": [3], "free": [{"id": "rich.highlighter.ReprHighlighter", "reason": "The regex pattern for URL matching needs to be updated to include '@' to correctly handle hyperlinks.", "kept": true, "gold": true}], "cite": [{"raw": "3", "resolved": "rich.highlighter.ReprHighlighter", "evidence": "class ReprHighlighter(RegexHighlighter):", "gold": true}], "n_shortlist": 20}, {"id": "rich_2725", "repo": "Textualize/rich", "num": "2725", "gold": ["rich.table.Table._render"], "shortlist": ["examples.export.print_table", "benchmarks.benchmarks.TableSuite._print_table", "rich.__main__.make_test_card", "rich.box.Box.get_row", "rich.box.Box.__init__", "rich.table.Table._render", "examples.fullscreen.make_sponsor_message", "rich.console.Console.set_window_title", "rich.box.Box", "rich.table.Table._get_cells", "rich.table.Table.add_column", "rich.table.Table", "rich.table.Table.__init__", "rich.table.Column", "tools.make_terminal_widths.run", "rich.progress.Progress.update", "rich.console.Console.export_svg", "rich.panel.Panel.__rich_console__", "rich.progress.Progress.reset", "rich.table.Table.get_padding"], "goldrank": [6], "free": [{"id": "rich.table.Table", "reason": "The main class responsible for managing and rendering the table structure, including its box elements (head, mid, foot).", "kept": true, "gold": false}, {"id": "rich.table.Table.render", "reason": "The method that orchestrates the drawing of the table, where the incorrect ordering of box elements is likely being determined or applied.", "kept": false, "gold": false}, {"id": "rich.table.Table._render_rows", "reason": "Internal method likely responsible for iterating over and placing the different sections (head, mid, foot) into the final output sequence.", "kept": false, "gold": false}, {"id": "rich.table.Table._get_rows", "reason": "A method that retrieves or generates the sequence of rows, which must correctly order the head, mid, and foot sections.", "kept": false, "gold": false}, {"id": "rich.table.Table._get_box_elements", "reason": "A method that retrieves the specific box elements (head, mid, foot) and determines their placement in the rendering pipeline.", "kept": false, "gold": false}], "cite": [{"raw": "rich.box.Box.get_row", "resolved": "rich.box.Box.get_row", "evidence": "def get_row(", "gold": false}, {"raw": "rich.table.Table._render", "resolved": "rich.table.Table._render", "evidence": "def _render(", "gold": true}], "n_shortlist": 20}, {"id": "rich_3470", "repo": "Textualize/rich", "num": "3470", "gold": ["rich.console.Console._write_buffer"], "shortlist": ["examples.fullscreen.make_sponsor_message", "rich.console.Console._write_buffer", "rich.progress.TimeRemainingColumn.render", "rich.highlighter.ISO8601Highlighter", "rich.console.Console.capture", "rich.console.Console.begin_capture", "rich.console.Capture.get", "rich.console.Capture.__enter__", "rich.logging.RichHandler.emit", "rich.console.CaptureError", "rich.console.Capture", "rich.console.Console.end_capture", "rich.logging.RichHandler.get_level_text", "rich.logging.RichHandler.render", "rich.logging.RichHandler.render_message", "rich.console.Console.export_text", "rich.console.Capture.__init__", "rich._win32_console.GetConsoleMode", "rich.console.Capture.__exit__", "rich.console.Console.export_html"], "goldrank": [2], "free": [{"id": "rich.console.Console", "reason": "This class manages output streams and is the primary location for capture logic.", "kept": true, "gold": false}, {"id": "rich.types.TypeState", "reason": "Changes here might be needed if the issue relates to how data records are interpreted or formatted during capture.", "kept": false, "gold": false}, {"id": "rich.table.Table", "reason": "If 'record' refers to structured data rows, the Table class or its internal row handling needs inspection.", "kept": true, "gold": false}, {"id": "rich.logging.RichHandler", "reason": "If the issue pertains to logging records being captured or processed incorrectly.", "kept": true, "gold": false}], "cite": [{"raw": "5", "resolved": "rich.console.Console.capture", "evidence": "def capture(self) -> Capture:", "gold": false}, {"raw": "12", "resolved": "rich.console.Console.end_capture", "evidence": "def end_capture(self) -> str:", "gold": false}, {"raw": "19", "resolved": "rich.console.Capture.__exit__", "evidence": "def __exit__(", "gold": false}, {"raw": "2", "resolved": "rich.console.Console._write_buffer", "evidence": "def _write_buffer(self) -> None:", "gold": true}, {"raw": "16", "resolved": "rich.console.Console.export_text", "evidence": "def export_text(self, *, clear: bool = True, styles: bool = False) -> str:", "gold": false}], "n_shortlist": 20}, {"id": "rich_3063", "repo": "Textualize/rich", "num": "3063", "gold": ["rich.markup.escape", "rich.markup.pop_style"], "shortlist": ["examples.fullscreen.make_sponsor_message", "rich.progress.TimeRemainingColumn.render", "rich.highlighter.ISO8601Highlighter", "rich.console.Console._check_buffer", "rich._win32_console.GetConsoleMode", "rich._fileno.get_fileno", "rich.box.Box.substitute", "rich.pretty._ipy_display_hook", "rich.syntax.Syntax", "rich.syntax.Syntax.from_path", "rich.protocol.is_renderable", "rich.segment.SegmentLines", "rich.palette.Palette.__rich__", "rich.text.Text.cell_len", "rich.align.Align.left", "rich.align.Align.right", "rich.live_render.LiveRender.__rich_console__", "examples.fullscreen.Header.__rich__", "rich.panel.Panel._title", "rich.panel.Panel._subtitle"], "goldrank": [], "free": [{"id": "rich.console.Console.print", "reason": "The Console class is the primary entry point for rendering output, and it is most likely where string processing and escaping logic resides.", "kept": true, "gold": false}, {"id": "rich.text.Text", "reason": "This class holds the actual text and its styling, and it may contain internal methods responsible for handling string representation and escaping.", "kept": true, "gold": false}, {"id": "rich.style.Style", "reason": "If the backslash is involved in custom formatting or style definitions, the Style class or its related parsing logic might need adjustment.", "kept": true, "gold": false}], "cite": [{"raw": "10", "resolved": "rich.syntax.Syntax.from_path", "evidence": "def from_path(", "gold": false}, {"raw": "19", "resolved": "rich.panel.Panel._title", "evidence": "if self.title:", "gold": false}, {"raw": "20", "resolved": "rich.panel.Panel._subtitle", "evidence": "if self.subtitle:", "gold": false}, {"raw": "6", "resolved": "rich._fileno.get_fileno", "evidence": "fileno: Callable[[], int] | None = getattr(file_like, \"fileno\", None)", "gold": false}], "n_shortlist": 20}], "counts": {"wins": 38, "free_ok": 11, "miss_in": 23, "miss_out": 46, "n": 115}, "nums": {"free_hit1": 0.06956521739130435, "retr_hit1": 0.1565217391304348, "cite_hit1": 0.3826086956521739, "n": 115, "agent_base": 3, "agent_ours": 8, "agent_tasks": 55}};
-const pc=x=>(x*100).toFixed(1)+'%';
-const N=D.nums;
-document.getElementById('nn').textContent=N.n;
-document.getElementById('big').innerHTML=
-`<div><b>${pc(N.free_hit1)} → ${pc(N.cite_hit1)}</b><span>E4B right on the first try (hit@1), free answer vs. cite-or-vanish, ${N.n} tasks</span></div>
- <div><b>${N.agent_base} → ${N.agent_ours} of ${N.agent_tasks}</b><span>bugs fixed by the coding agent without vs. with the pipeline</span></div>`;
-const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-let cur=0,step={};
-const pick=document.getElementById('pick'),view=document.getElementById('view');
-D.tasks.forEach((t,i)=>{const b=document.createElement('button');b.textContent=t.id;b.onclick=()=>{cur=i;step={};render()};pick.appendChild(b)});
-function render(){
- [...pick.children].forEach((b,i)=>b.classList.toggle('on',i==cur));
- const t=D.tasks[cur],s=step,c=t.cite;
- const link=`https://github.com/${t.repo}/issues/${t.num}`;
- const fsyms=t.free.map(x=>`<span class="sym ${s.f?(x.kept?'stay':'gone'):''}">${esc(x.id)}${s.f?`<span class="tag">${x.kept?'exists in the code':'vanished: no such symbol'}</span>`:''}<small>${esc(x.reason)}</small></span>`).join('')||'<small>No usable answer.</small>';
- const fk=t.free.filter(x=>x.kept);
- const sl=t.shortlist.map(x=>{const cited=c.some(q=>q.resolved===x);return `<li class="${cited?'cited':''} ${s.g&&t.gold.includes(x)?'gold':''}">${esc(x)}</li>`}).join('');
- const cs=c.map(q=>`<span class="sym ${s.c?(q.resolved?'stay':'gone'):''}">list number ${esc(q.raw)} → ${q.resolved?esc(q.resolved):'(not on the list)'}${s.c?`<span class="tag">${q.resolved?'on the list, kept':'vanished'}</span>`:''}<pre>${esc(q.evidence)}</pre></span>`).join('')||'<small>No usable answer.</small>';
- const hit=c[0]&&c[0].gold, fhit=fk[0]&&fk[0].gold;
- view.innerHTML=`
- <div class="card"><h2>2. Free answer (no rules)</h2>${fsyms}
-  <button class="go" onclick="step.f=1;render()">Run validator</button>
-  ${s.f?`<p>${fk.length?`${t.free.length-fk.length} of ${t.free.length} claims vanished; `:'Every claim vanished; '}the model named things that do not exist in the repository.</p>`:''}</div>
- <div class="card"><h2>3. Cite or Vanish: the model sees only this list (${t.n_shortlist} candidates)</h2><ol class="sl">${sl}</ol></div>
- <div class="card"><h2>4. What E4B cited (first answer)</h2>${cs}
-  <button class="go" onclick="step.c=1;render()">Run validator</button>
-  ${s.c?'<p>Check replayed: the symbol is on the list. A claim off the list vanishes.</p>':''}</div>
- <div class="card"><h2>5. Compare with the real fix</h2>
-  <button class="go" onclick="step.g=1;render()">Reveal the symbol the maintainers changed</button>
-  ${s.g?`<p>Changed in the real fix: <b>${t.gold.map(esc).join(', ')}</b> (<a href="${link}" target="_blank" rel="noopener">${t.repo}#${t.num}</a>)</p>
-  <p class="v">Free answer, first symbol: <span class="${fhit?'ok':'bad'}">${fk.length?(fhit?'correct':'wrong'):'nothing left'}</span> · Cite or Vanish, first symbol: <span class="${hit?'ok':'bad'}">${c.length?(hit?'correct':'wrong'):'nothing left'}</span></p>
-  <p>${t.goldrank.length?`The right answer was on the list at position ${t.goldrank.join(', ')}.`:'The right answer was not on the list, so it could not be found this way.'}</p>`:''}</div>`;
+const D={"tasks": [{"id": "rich_2943", "repo": "Textualize/rich", "num": "2943", "gold": ["rich.style.Style.clear_meta_and_links"], "shortlist": ["examples.fullscreen.make_sponsor_message", "rich.console.Console.set_window_title", "rich.console.Console._check_buffer", "tools.make_terminal_widths.run", "rich.progress.TimeRemainingColumn.render", "rich.style.Style", "rich.style.Style.clear_meta_and_links", "rich.live_render.LiveRender", "rich.text.Text.on", "rich.control.Control", "rich.console.Console.save_svg", "rich.traceback.Traceback.read_code", "rich.highlighter.ISO8601Highlighter", "rich.traceback.install", "rich.prompt.Confirm", "rich.console.Console.save_html", "rich.syntax.Syntax", "rich.text.Text.assemble", "rich.prompt.PromptBase.__call__", "rich.console.Console.export_html"], "goldrank": [7], "free": [{"id": "rich.core.CacheManager.clear_cache", "reason": "The cache needs an explicit clearing mechanism.", "kept": false, "gold": false}, {"id": "rich.core.Meta.clear_meta", "reason": "This method is the trigger for the required cache invalidation.", "kept": false, "gold": false}, {"id": "rich.core.Renderer.render_with_cache", "reason": "The rendering logic likely uses the hashed cache and needs to be aware of meta changes.", "kept": false, "gold": false}, {"id": "rich.core.State.get_cached_value", "reason": "The method that retrieves cached values must check for meta validity before returning a result.", "kept": false, "gold": false}, {"id": "rich.core.Config.update_metadata", "reason": "Any method that modifies the metadata should potentially trigger a cache clear.", "kept": false, "gold": false}], "cite": [{"raw": "7", "resolved": "rich.style.Style.clear_meta_and_links", "evidence": "def clear_meta_and_links(self) -> \"Style\":", "gold": true}], "n_shortlist": 20}, {"id": "rich_3006", "repo": "Textualize/rich", "num": "3006", "gold": ["rich.repr.auto_rich_repr"], "shortlist": ["rich.console.Console.set_window_title", "rich.console.Console._check_buffer", "examples.fullscreen.make_sponsor_message", "rich.pretty._has_default_namedtuple_repr", "rich.pretty._is_dataclass_repr", "rich.progress.Progress.get_default_columns", "tools.make_terminal_widths.run", "rich.repr.auto_rich_repr", "rich.text.Text.__eq__", "rich.style.Style.__eq__", "rich.progress.Progress.update", "rich.repr.do_replace", "rich.repr.auto", "rich.control.Control.__init__", "rich.pretty._traverse", "rich.progress.TimeRemainingColumn.render", "rich.pretty.traverse", "rich.markup.render", "rich.pretty.is_expandable", "rich._win32_console.GetConsoleMode"], "goldrank": [8], "free": [{"id": "rich.parameters.Parameters", "reason": "The class likely contains the logic for parameter sets and the definition of the 'empty' state.", "kept": false, "gold": false}, {"id": "rich.parameters.Parameters.__eq__", "reason": "The equality check (`==`) is where the bug manifests when custom classes override `__eq__`.", "kept": false, "gold": false}, {"id": "rich.parameters.Parameters.empty", "reason": "This is the sentinel value being compared against, and its interaction with custom object equality is the root cause.", "kept": false, "gold": false}], "cite": [{"raw": "8", "resolved": "rich.repr.auto_rich_repr", "evidence": "def auto_rich_repr(self: Type[T]) -> Result:", "gold": true}, {"raw": "12", "resolved": "rich.repr.do_replace", "evidence": "def do_replace(cls: Type[T], angular: Optional[bool] = None) -> Type[T]:", "gold": false}, {"raw": "13", "resolved": "rich.repr.auto", "evidence": "def do_replace(cls: Type[T], angular: Optional[bool] = None) -> Type[T]:", "gold": false}], "n_shortlist": 20}, {"id": "rich_3052", "repo": "Textualize/rich", "num": "3052", "gold": ["rich.prompt.PromptBase.__init__", "rich.prompt.PromptBase.ask", "rich.prompt.PromptBase.check_choice", "rich.prompt.PromptBase.process_response"], "shortlist": ["rich.prompt.PromptBase.ask", "rich.console.Console.set_window_title", "rich.prompt.PromptBase", "examples.fullscreen.make_sponsor_message", "rich.console.Console._check_buffer", "rich.prompt.Prompt", "rich.prompt.PromptBase.make_prompt", "rich.prompt.PromptBase.check_choice", "rich.prompt.PromptBase.__init__", "rich.console.Console.input", "rich.prompt.Confirm", "rich.text.Text.highlight_words", "rich.spinner.Spinner", "rich.prompt.PromptBase.__call__", "rich.live_render.LiveRender", "rich.prompt.PromptBase.process_response", "rich.syntax.Syntax", "rich.tree.Tree.add", "rich._inspect.Inspect", "rich.prompt.Confirm.render_default"], "goldrank": [9, 1, 8, 16], "free": [{"id": "rich.prompt.Prompt.ask", "reason": "This method needs to accept the new 'case_sensitive' parameter and pass it down to the choice validation logic.", "kept": false, "gold": false}, {"id": "rich.prompt.Prompt._ask_with_choices", "reason": "This internal method (or similar logic) is responsible for comparing user input against the provided choices and needs to implement case-insensitive matching when case_sensitive is False.", "kept": false, "gold": false}], "cite": [{"raw": "1", "resolved": "rich.prompt.PromptBase.ask", "evidence": "def ask(", "gold": true}, {"raw": "8", "resolved": "rich.prompt.PromptBase.check_choice", "evidence": "def check_choice(self, value: str) -> bool:", "gold": true}, {"raw": "9", "resolved": "rich.prompt.PromptBase.__init__", "evidence": "def __init__(", "gold": true}], "n_shortlist": 20}, {"id": "rich_3061", "repo": "Textualize/rich", "num": "3061", "gold": ["rich.text.Text.__init__", "rich.text.Text.__rich_console__", "rich.text.Text.append_text", "rich.text.Text.append_tokens", "rich.text.Text.divide", "rich.text.Text.expand_tabs", "rich.text.Text.from_ansi"], "shortlist": ["rich.text.Text.expand_tabs", "examples.fullscreen.make_sponsor_message", "rich.text.Text", "rich.containers.Lines.justify", "rich.text.Text.wrap", "rich.text.Text.__init__", "rich.rule.Rule.__rich_console__", "rich.text.Text.assemble", "rich.highlighter.ISO8601Highlighter", "rich.text.Text.copy_styles", "rich.progress.TimeRemainingColumn.render", "rich.text.Text.from_ansi", "rich.text.Text.truncate", "rich.console.Console._check_buffer", "rich.text.Text.join", "rich.console.Console.export_svg", "rich.text.Text.align", "rich.text.Text.pad", "rich.text.Text.append_text", "rich.text.Text.copy"], "goldrank": [6, 19, 1, 12], "free": [{"id": "rich.text.Text.extend_tabs", "reason": "This is the method explicitly identified as having the bug, needing modification to correctly handle spans when replacing tabs with spaces.", "kept": false, "gold": false}, {"id": "rich.text.Text", "reason": "The Text class holds the state and logic for spans and needs to be updated to ensure span information is preserved during tab extension.", "kept": true, "gold": false}], "cite": [{"raw": "1", "resolved": "rich.text.Text.expand_tabs", "evidence": "def expand_tabs(self, tab_size: Optional[int] = None) -> None:", "gold": true}], "n_shortlist": 20}, {"id": "rich_3454", "repo": "Textualize/rich", "num": "3454", "gold": ["rich.highlighter.ReprHighlighter"], "shortlist": ["examples.fullscreen.make_sponsor_message", "rich.console.Console.set_window_title", "rich.highlighter.ReprHighlighter", "rich.highlighter.ISO8601Highlighter", "rich.progress.TimeRemainingColumn.render", "rich.highlighter.RegexHighlighter", "rich.pretty._has_default_namedtuple_repr", "tools.make_terminal_widths.run", "rich.console.Console._check_buffer", "rich.highlighter.Highlighter.__call__", "rich.color.Color.parse", "rich.highlighter.NullHighlighter", "rich.traceback.install", "rich.logging.RichHandler", "rich.highlighter.RegexHighlighter.highlight", "rich.jupyter.display", "rich.pretty._is_dataclass_repr", "rich.markdown.Markdown", "rich.align.VerticalCenter", "rich._inspect.Inspect.__init__"], "goldrank": [3], "free": [{"id": "rich.highlighter.ReprHighlighter", "reason": "The regex pattern for URL matching needs to be updated to include '@' to correctly handle hyperlinks.", "kept": true, "gold": true}], "cite": [{"raw": "3", "resolved": "rich.highlighter.ReprHighlighter", "evidence": "class ReprHighlighter(RegexHighlighter):", "gold": true}], "n_shortlist": 20}, {"id": "rich_2725", "repo": "Textualize/rich", "num": "2725", "gold": ["rich.table.Table._render"], "shortlist": ["examples.export.print_table", "benchmarks.benchmarks.TableSuite._print_table", "rich.__main__.make_test_card", "rich.box.Box.get_row", "rich.box.Box.__init__", "rich.table.Table._render", "examples.fullscreen.make_sponsor_message", "rich.console.Console.set_window_title", "rich.box.Box", "rich.table.Table._get_cells", "rich.table.Table.add_column", "rich.table.Table", "rich.table.Table.__init__", "rich.table.Column", "tools.make_terminal_widths.run", "rich.progress.Progress.update", "rich.console.Console.export_svg", "rich.panel.Panel.__rich_console__", "rich.progress.Progress.reset", "rich.table.Table.get_padding"], "goldrank": [6], "free": [{"id": "rich.table.Table", "reason": "The main class responsible for managing and rendering the table structure, including its box elements (head, mid, foot).", "kept": true, "gold": false}, {"id": "rich.table.Table.render", "reason": "The method that orchestrates the drawing of the table, where the incorrect ordering of box elements is likely being determined or applied.", "kept": false, "gold": false}, {"id": "rich.table.Table._render_rows", "reason": "Internal method likely responsible for iterating over and placing the different sections (head, mid, foot) into the final output sequence.", "kept": false, "gold": false}, {"id": "rich.table.Table._get_rows", "reason": "A method that retrieves or generates the sequence of rows, which must correctly order the head, mid, and foot sections.", "kept": false, "gold": false}, {"id": "rich.table.Table._get_box_elements", "reason": "A method that retrieves the specific box elements (head, mid, foot) and determines their placement in the rendering pipeline.", "kept": false, "gold": false}], "cite": [{"raw": "rich.box.Box.get_row", "resolved": "rich.box.Box.get_row", "evidence": "def get_row(", "gold": false}, {"raw": "rich.table.Table._render", "resolved": "rich.table.Table._render", "evidence": "def _render(", "gold": true}], "n_shortlist": 20}, {"id": "rich_3470", "repo": "Textualize/rich", "num": "3470", "gold": ["rich.console.Console._write_buffer"], "shortlist": ["examples.fullscreen.make_sponsor_message", "rich.console.Console._write_buffer", "rich.progress.TimeRemainingColumn.render", "rich.highlighter.ISO8601Highlighter", "rich.console.Console.capture", "rich.console.Console.begin_capture", "rich.console.Capture.get", "rich.console.Capture.__enter__", "rich.logging.RichHandler.emit", "rich.console.CaptureError", "rich.console.Capture", "rich.console.Console.end_capture", "rich.logging.RichHandler.get_level_text", "rich.logging.RichHandler.render", "rich.logging.RichHandler.render_message", "rich.console.Console.export_text", "rich.console.Capture.__init__", "rich._win32_console.GetConsoleMode", "rich.console.Capture.__exit__", "rich.console.Console.export_html"], "goldrank": [2], "free": [{"id": "rich.console.Console", "reason": "This class manages output streams and is the primary location for capture logic.", "kept": true, "gold": false}, {"id": "rich.types.TypeState", "reason": "Changes here might be needed if the issue relates to how data records are interpreted or formatted during capture.", "kept": false, "gold": false}, {"id": "rich.table.Table", "reason": "If 'record' refers to structured data rows, the Table class or its internal row handling needs inspection.", "kept": true, "gold": false}, {"id": "rich.logging.RichHandler", "reason": "If the issue pertains to logging records being captured or processed incorrectly.", "kept": true, "gold": false}], "cite": [{"raw": "5", "resolved": "rich.console.Console.capture", "evidence": "def capture(self) -> Capture:", "gold": false}, {"raw": "12", "resolved": "rich.console.Console.end_capture", "evidence": "def end_capture(self) -> str:", "gold": false}, {"raw": "19", "resolved": "rich.console.Capture.__exit__", "evidence": "def __exit__(", "gold": false}, {"raw": "2", "resolved": "rich.console.Console._write_buffer", "evidence": "def _write_buffer(self) -> None:", "gold": true}, {"raw": "16", "resolved": "rich.console.Console.export_text", "evidence": "def export_text(self, *, clear: bool = True, styles: bool = False) -> str:", "gold": false}], "n_shortlist": 20}, {"id": "rich_3063", "repo": "Textualize/rich", "num": "3063", "gold": ["rich.markup.escape", "rich.markup.pop_style"], "shortlist": ["examples.fullscreen.make_sponsor_message", "rich.progress.TimeRemainingColumn.render", "rich.highlighter.ISO8601Highlighter", "rich.console.Console._check_buffer", "rich._win32_console.GetConsoleMode", "rich._fileno.get_fileno", "rich.box.Box.substitute", "rich.pretty._ipy_display_hook", "rich.syntax.Syntax", "rich.syntax.Syntax.from_path", "rich.protocol.is_renderable", "rich.segment.SegmentLines", "rich.palette.Palette.__rich__", "rich.text.Text.cell_len", "rich.align.Align.left", "rich.align.Align.right", "rich.live_render.LiveRender.__rich_console__", "examples.fullscreen.Header.__rich__", "rich.panel.Panel._title", "rich.panel.Panel._subtitle"], "goldrank": [], "free": [{"id": "rich.console.Console.print", "reason": "The Console class is the primary entry point for rendering output, and it is most likely where string processing and escaping logic resides.", "kept": true, "gold": false}, {"id": "rich.text.Text", "reason": "This class holds the actual text and its styling, and it may contain internal methods responsible for handling string representation and escaping.", "kept": true, "gold": false}, {"id": "rich.style.Style", "reason": "If the backslash is involved in custom formatting or style definitions, the Style class or its related parsing logic might need adjustment.", "kept": true, "gold": false}], "cite": [{"raw": "10", "resolved": "rich.syntax.Syntax.from_path", "evidence": "def from_path(", "gold": false}, {"raw": "19", "resolved": "rich.panel.Panel._title", "evidence": "if self.title:", "gold": false}, {"raw": "20", "resolved": "rich.panel.Panel._subtitle", "evidence": "if self.subtitle:", "gold": false}, {"raw": "6", "resolved": "rich._fileno.get_fileno", "evidence": "fileno: Callable[[], int] | None = getattr(file_like, \"fileno\", None)", "gold": false}], "n_shortlist": 20}], "counts": {"wins": 38, "free_ok": 11, "miss_in": 23, "miss_out": 46, "n": 115}, "nums": {"free_hit1": 0.06956521739130435, "retr_hit1": 0.1565217391304348, "cite_hit1": 0.3826086956521739, "n": 115, "agent_base": 3, "agent_ours": 8, "agent_tasks": 55}, "extra": {"free_claims": 425, "invented": 0.7223529411764706, "live_tasks": 120, "live_repos": 68, "live_free": 0.06140350877192982, "live_retr": 0.23684210526315788, "live_cite": 0.5}};
+const N=D.nums, X=D.extra||{};
+const pc=(x,d=0)=>(x*100).toFixed(d)+'%';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const main=document.getElementById('main');
+let S=0, cur=0, st={}, run=0;
+
+const SCENES=[
+ {k:'open',t:'Cold open'},{k:'rule',t:'The rule'},{k:'case',t:'Pick a case'},
+ {k:'free',t:'Interrogation'},{k:'lineup',t:'The lineup'},{k:'verdict',t:'Verdict'},
+ {k:'numbers',t:'The numbers'},{k:'proof',t:'Proof'}];
+
+/* ---------- Dot ---------- */
+function stage(html,line,mood){
+ return `<div class="stage"><div class="dotbox">${document.getElementById('dot-svg').innerHTML}<div class="bubble" id="say"></div></div><div>${html}</div></div>`;
 }
+async function say(text,mood){
+ const id=++run, el=document.getElementById('say'), dot=document.getElementById('dot');
+ if(!el)return; dot.setAttribute('class',mood||'happy'); el.textContent='';
+ const m=dot.querySelector('.mouth');
+ for(let i=0;i<text.length;i++){ if(id!==run)return; el.textContent+=text[i];
+  if(i%2==0)m.style.transform=`scaleY(${1+Math.random()*1.6})`; await sleep(text[i]===' '?14:22);}
+ m.style.transform='';
+}
+function mood(m){const d=document.getElementById('dot');if(d)d.setAttribute('class',m)}
+
+/* ---------- scenes ---------- */
+function go(i){S=Math.max(0,Math.min(SCENES.length-1,i));render();window.scrollTo({top:0,behavior:'smooth'})}
+function render(){
+ run++;
+ const sc=SCENES[S];
+ document.getElementById('chips').innerHTML=SCENES.map((s,i)=>`<button class="chip ${i==S?'on':''}" onclick="go(${i})">${s.t}</button>`).join('');
+ document.getElementById('pos').textContent=`${sc.t} · ${S+1} of ${SCENES.length}`;
+ document.getElementById('prev').style.visibility=S?'visible':'hidden';
+ const nx=document.getElementById('next');
+ nx.style.visibility=S<SCENES.length-1?'visible':'hidden';
+ nx.textContent=['Meet the detective →','Open the case files →','Interrogate →','The lineup →','Verdict →','The numbers →','Proof →',''][S];
+ main.innerHTML=`<section class="scene">${VIEW[sc.k]()}</section>`;
+ (AFTER[sc.k]||(()=>{}))();
+ const chip=document.querySelector('.chip.on'); if(chip)chip.scrollIntoView({inline:'center',block:'nearest'});
+}
+const T=()=>D.tasks[cur];
+const caseName=t=>`${t.repo.split('/')[1]} #${t.num}`;
+
+const VIEW={
+open:()=>`<h1 class="hero">Asked where a bug lives,<br>a small model named <span class="r">${X.free_claims||425}</span> functions.</h1>
+ <p class="hero-sub" id="reveal" style="opacity:0;transition:opacity 1s"><b style="font:italic 600 clamp(30px,4vw,44px)/1.1 var(--f-title);color:var(--red)">${pc(X.invented||.722)} of them do not exist.</b></p>
+ <div style="display:flex;justify-content:center;margin-top:10px" id="opendot"></div>
+ <span class="ghostline">A detective story where the evidence is one real line of code.</span>`,
+rule:()=>stage(`<div class="kicker">The rule</div><h2 class="t">Cite, or vanish.</h2>
+ <p class="lede">Gemma 4 E4B is small enough to run on a laptop, offline and free. It is also a confident storyteller. So every claim it makes must pass three checks. Fail one, and the claim disappears before the coding agent ever sees it.</p>
+ <div class="grid3">
+  <div class="card rule"><span class="n">CHECK 1</span><b>On the shortlist</b><p>It may only point at one of ${D.tasks[0].n_shortlist} functions that search found for this bug.</p></div>
+  <div class="card rule"><span class="n">CHECK 2</span><b>Exists in the code</b><p>The name must be a real function or class in the repository's code graph.</p></div>
+  <div class="card rule"><span class="n">CHECK 3</span><b>Copy one real line</b><p>It must quote a line that appears, character for character, in that function.</p></div>
+ </div>
+ <p class="note">No second model, no training. A few microseconds of plain string matching.</p>`),
+case:()=>stage(`<div class="kicker">Case files</div><h2 class="t">Pick a real bug.</h2>
+ <p class="lede">Real issues from the open-source library <b>rich</b>. Each file holds what Gemma 4 E4B actually answered in our experiment, replayed step by step.</p>
+ <div class="cases">${D.tasks.map((t,i)=>`<button class="case ${i==cur?'on':''}" onclick="cur=${i};st={};go(3)"><span class="tab">Case ${i+1}</span><b>#${t.num}</b><span>${esc(t.repo)}</span></button>`).join('')}</div>
+ <p class="note">Not hand-picked: the first task of each outcome group, in id order. Two of these cases end badly, on purpose.</p>`),
+free:()=>{const t=T();return stage(`<div class="kicker">${esc(caseName(t))} · Interrogation</div><h2 class="t">First, no rules.</h2>
+ <p class="lede">We asked Gemma 4 E4B, with no list and no proof required: which functions should change to fix this bug? Here are its suspects.</p>
+ <div class="claims">${t.free.map((x,i)=>`<div class="claim" id="f${i}"><code>${esc(x.id)}</code><small>“${esc(x.reason)}”</small><span class="stamp ${x.kept?'ok':'bad'}">${x.kept?'exists':'no such function'}</span></div>`).join('')||'<p class="note">No usable answer.</p>'}</div>
+ <button class="go" id="fbtn" onclick="checkFree()">🔍 Check them against the code</button><p class="note" id="fsum"></p>`)},
+lineup:()=>{const t=T();return stage(`<div class="kicker">${esc(caseName(t))} · The lineup</div><h2 class="t">Now: only these ${t.n_shortlist}.</h2>
+ <p class="lede">Search on a plain CPU picks ${t.n_shortlist} real functions. Gemma may only point at one of them, and must copy a line as proof.</p>
+ <div class="lineup">${t.shortlist.map((x,i)=>`<div class="sus" id="s${i}"><i>${i+1}</i>${esc(x)}</div>`).join('')}</div>
+ <div class="answer" id="ans">${t.cite.length?t.cite.map(q=>`{ <span class="k">"id"</span>: <span class="s">"${esc(q.raw)}"</span>, <span class="k">"evidence"</span>: <span class="s">"${esc(q.evidence)}"</span> }`).join('<br>'):'(no usable answer)'}</div>
+ <button class="go" id="cbtn" onclick="checkCite()">🔍 Run the three checks</button>
+ <div class="checks" id="checks"></div>`)},
+verdict:()=>{const t=T();const fk=t.free.filter(x=>x.kept),hit=t.cite[0]&&t.cite[0].gold,fhit=fk[0]&&fk[0].gold;
+ return stage(`<div class="kicker">${esc(caseName(t))} · Verdict</div><h2 class="t">What did the real fix change?</h2>
+ <p class="lede">The maintainers already fixed this bug. Their patch tells us the right answer.</p>
+ <div class="fix card">Changed in the real fix: <code>${t.gold.map(esc).join(', ')}</code><br><a href="https://github.com/${esc(t.repo)}/issues/${esc(t.num)}" target="_blank" rel="noopener">Open ${esc(t.repo)}#${esc(t.num)} on GitHub ↗</a></div>
+ <div class="verdict" style="margin-top:14px">
+  <div class="vcard ${fhit?'ok':'bad'}"><span class="lbl">Free answer, first pick</span><b>${fk.length?(fhit?'Correct':'Wrong'):'Nothing left'}</b><span class="note">${fk.length?'':'Every name it gave was invented.'}</span></div>
+  <div class="vcard ${hit?'ok':'bad'}"><span class="lbl">Cite or vanish, first pick</span><b>${t.cite.length?(hit?'Correct':'Wrong'):'Nothing left'}</b><span class="note">${t.goldrank.length?`The right function was #${t.goldrank.join(', #')} on the list.`:'The right function was not on the list, so no citation could find it.'}</span></div>
+ </div>
+ <button class="go gold" onclick="cur=(cur+1)%D.tasks.length;st={};go(3)">Next case →</button>`)},
+numbers:()=>stage(`<div class="kicker">All the cases, not just these</div><h2 class="t">Small model, real answers.</h2>
+ <p class="lede">Same Gemma 4 E4B, same laptop-sized budget. The only change is the rule.</p>
+ <div class="stats">
+  <div class="stat"><div class="big"><span class="a">${pc(N.free_hit1)} →</span> <span data-to="${N.cite_hit1}">0%</span></div><p>right function on the first try, ${N.n} competition bugs</p>
+   <div class="bars">${bar('Free answer',N.free_hit1,'var(--bad)')}${bar('Search only',N.retr_hit1,'var(--mut)')}${bar('Cite or vanish',N.cite_hit1,'var(--ok)')}</div></div>
+  <div class="stat"><div class="big"><span class="a">${pc(X.live_retr||.237)} →</span> <span data-to="${X.live_cite||.5}">0%</span></div><p>on ${X.live_tasks||120} newer bugs from ${X.live_repos||68} other repositories</p>
+   <div class="bars">${bar('Free answer',X.live_free||.061,'var(--bad)')}${bar('Search only',X.live_retr||.237,'var(--mut)')}${bar('Cite or vanish',X.live_cite||.5,'var(--ok)')}</div></div>
+  <div class="stat"><div class="big"><span class="a">${N.agent_base} →</span> <span data-n="${N.agent_ours}">0</span></div><p>bugs actually fixed by a full Gemma 4 E4B coding agent, out of ${N.agent_tasks}, in the official harness</p>
+   <div class="bars">${bar('Sample agent',N.agent_base/N.agent_tasks,'var(--mut)',N.agent_base)}${bar('With the rule',N.agent_ours/N.agent_tasks,'var(--gold)',N.agent_ours)}</div></div>
+ </div>`),
+proof:()=>stage(`<div class="kicker">Proof and fine print</div><h2 class="t">Check our work.</h2>
+ <div class="links">
+  <a class="card" href="https://www.kaggle.com/competitions/gemma-4-developer-agent-paper" target="_blank" rel="noopener"><b>The paper</b><span>Gemma 4 Developer Agent Paper Track on Kaggle: method, tables, confidence intervals.</span></a>
+  <a class="card" href="https://github.com/jenniferevangelista-de/cite-or-vanish" target="_blank" rel="noopener"><b>This page</b><span>One HTML file. Every number and answer above is embedded and readable.</span></a>
+  <a class="card" href="https://huggingface.co/datasets/SWE-bench-Live/SWE-bench-Live" target="_blank" rel="noopener"><b>The 68 new repositories</b><span>SWE-bench-Live (MIT), used for the out-of-distribution check.</span></a>
+ </div>
+ <p class="fine">This page replays saved runs of Gemma 4 E4B (QAT) on ${N.n} bug-localization tasks. Nothing is computed live and no model is called. The cases are the first of each outcome group in id order, not chosen to flatter. The third check (the copied line must appear in the function's code) ran during the experiment; the source code is not bundled here, so the page shows its result instead of re-running it. The newer issues predate Gemma 4, so they test new repositories, not unseen data.</p>`)
+};
+function bar(l,v,c,label){return `<div class="bar">${l}<div><span style="background:${c}" data-w="${(v*100).toFixed(1)}"></span></div><b class="v">${label!=null?label:pc(v)}</b></div>`}
+
+const AFTER={
+open:async()=>{const box=document.getElementById('opendot');box.innerHTML=`<div style="width:170px">${document.getElementById('dot-svg').innerHTML}</div>`;mood('shock');
+ await sleep(900);const r=document.getElementById('reveal');if(r)r.style.opacity=1},
+rule:()=>say("I'm Dot. I hunt bugs, and the stories small models tell about them. My rule is simple: cite real code, or vanish.","happy"),
+case:()=>say("Pick a file. Every answer in there is exactly what Gemma said, no edits.","happy"),
+free:()=>say("Lots of confident names. Let me check if any of these functions are real.","scan"),
+lineup:()=>say("Same bug. This time Gemma has to point at the list and copy a line as proof.","scan"),
+verdict:()=>{const t=T();const hit=t.cite[0]&&t.cite[0].gold;
+ say(hit?"Case closed. The cited function is the one the maintainers fixed.":t.goldrank.length?"Not this time. The right one was on the list, but Gemma pointed elsewhere.":"Not this time. Search never put the right function on the list.",hit?'happy':'shock')},
+numbers:async()=>{say("One case is a story. Here are all of them.","happy");await sleep(150);
+ document.querySelectorAll('[data-w]').forEach(s=>s.style.width=s.dataset.w+'%');
+ document.querySelectorAll('[data-to]').forEach(el=>count(el,+el.dataset.to,v=>pc(v)));
+ document.querySelectorAll('[data-n]').forEach(el=>count(el,+el.dataset.n,v=>Math.round(v)))},
+proof:()=>say("Everything here is a replay of saved runs. Go check the receipts.","happy")
+};
+async function count(el,to,f){const id=run;for(let i=0;i<=40;i++){if(id!==run)return;el.textContent=f(to*i/40);await sleep(25)}}
+
+async function checkFree(){const id=run,t=T();document.getElementById('fbtn').disabled=true;mood('scan');
+ for(let i=0;i<t.free.length;i++){const c=document.getElementById('f'+i);c.classList.add('scan');await sleep(650);if(id!==run)return;
+  c.classList.remove('scan');c.querySelector('.stamp').classList.add('show');await sleep(250);c.classList.add(t.free[i].kept?'stay':'gone');await sleep(300)}
+ const k=t.free.filter(x=>x.kept).length;
+ document.getElementById('fsum').innerHTML=k?`<b>${t.free.length-k} of ${t.free.length}</b> names do not exist in the repository. ${k} survived.`:`<b>All ${t.free.length}</b> names are invented. An agent would have chased ${t.free.length} dead ends.`;
+ say(k?"Some of those don't exist at all. An agent would waste turns on them.":"Not one of them exists. Pure fiction.",'shock')}
+
+async function checkCite(){const id=run,t=T();document.getElementById('cbtn').disabled=true;mood('scan');
+ const box=document.getElementById('checks');const sl=t.shortlist;
+ for(const q of t.cite){const idx=sl.indexOf(q.resolved),isNum=/^\[?\d+\]?$/.test(q.raw);
+  const rows=[
+   [idx>=0,`On the shortlist: ${isNum?`list number <code>${esc(q.raw)}</code> → `:''}<code>${esc(q.resolved||q.raw)}</code>`],
+   [!!q.resolved,`Exists in the code graph`],
+   [!!q.evidence,`Copied line found in its source: <code>${esc(q.evidence)}</code>`]];
+  for(const [ok,txt] of rows){const d=document.createElement('div');d.className='chk';d.innerHTML=`<span class="ic">${ok?'✅':'❌'}</span><span>${txt}</span>`;box.appendChild(d);d.scrollIntoView({block:'center',behavior:'smooth'});
+   await sleep(420);if(id!==run)return;d.classList.add('on',ok?'ok':'bad');
+   if(txt.startsWith('On the')&&idx>=0){document.getElementById('s'+idx).classList.add('cited')}}
+  await sleep(250)}
+ const kept=t.cite.filter(q=>q.resolved).length;
+ const p=document.createElement('p');p.className='note';p.innerHTML=`<b>${kept} of ${t.cite.length}</b> citations passed. Every location handed to the agent is real.`;box.appendChild(p);
+ const n=document.createElement('button');n.className='go gold';n.textContent='See the verdict →';n.onclick=()=>go(5);box.appendChild(n);n.scrollIntoView({block:'center',behavior:'smooth'});
+ say("Every citation points at real code, with proof. Now, was it the right one?",'happy')}
+
+document.getElementById('next').onclick=()=>go(S+1);
+document.getElementById('prev').onclick=()=>go(S-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(S+1);if(e.key==='ArrowLeft')go(S-1)});
 render();
 </script></body></html>
